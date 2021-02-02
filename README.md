@@ -1,5 +1,5 @@
 # multiroom
-Multiroom audio setup based on mpd and snapcast, supporting analog and bluetooth sources. No automated installation (yet).
+Step by step tutorial to install and configure a multiroom audio setup. It is based on mpd and snapcast and supports ALSA sources. Stream your vinyl records to all rooms. Or your favourite music from your mobile over bluetooth.
 
 ## Design
 
@@ -12,11 +12,11 @@ Multiroom audio setup based on mpd and snapcast, supporting analog and bluetooth
 * Maximise sound quality: No conversion of the audio signal in any way (resampling, lossy codecs, ...)
 * Maximise digital sovereignty: No need to integrate streaming services that make it almost impossible to downlad a text version of **my own** playlists (hi spotify). If you really need it: Use the app on your mobile or desktop and connect via bluetooth.
 
-### Limitations
+### Limitations (learned the hard way)
 
-* Every soundcard seems to have one global clock for the sampling rate (maybe for the sample size too). This seems to be well known, but documented poorly. You cannot record audio at 48000/16/2 from the soundcard while playing audio at 44100/16/2. I spent some hours with unclear error messages, erratic behaviour (sometimes a command worked, sometimes not) until I discovered this basic limitation. 
+* Every soundcard seems to have one global clock for the sampling rate (maybe for the sample size too). This seems to be well known, but not well documented: You cannot record audio at 48000/16/2 from the soundcard while playing audio at 44100/16/2. I spent some hours with unclear error messages, erratic behaviour (sometimes a command worked, sometimes not) until I discovered this basic limitation. 
 
-* Do **not** install mpd/snapserver on a VM. Install it on dedicated HW (like the Raspi). You will have dropouts. If anyone knows how to set priorities (on the KVM host and/or in the VM itself) so that the dropouts stop, I would be very happy to learn it.
+* Do **not** install mpd/snapserver on a VM. You will have dropouts. If anyone knows how to set priorities (on the KVM host and/or in the VM itself) so that the dropouts stop, I would be very happy to learn it. Install them on dedicated HW (like the Raspberry Pi).
 
 ## Overview
 
@@ -46,7 +46,7 @@ Multiroom audio setup based on mpd and snapcast, supporting analog and bluetooth
 * [frafall/multiroom](https://github.com/frafall/multiroom): Full media center and multiroom, Kodi integration etc. Bloated for my use case.
 * [Wireless Multi-Room Audio System For Home](https://github.com/skalavala/Multi-Room-Audio-Centralized-Audio-for-Home): Uses mopidy (vs mpd) and PulseAudio (vs ALSA).
 
-So it looks like I have reinvented the wheel. But as far as I can tell, none of the solutions above integrate bluetooth **and** analog sources.
+So it looks like I have reinvented the wheel - but only partially. None of the solutions above integrate bluetooth **and** analog sources.
 
 ## Build it
 
@@ -56,10 +56,9 @@ During my journey, I found out that playing around with audio can be tricky. If 
 
 * Install Raspbian (based on Debian buster). Be sure to set the keyboard mapping correct, as the default password contains a **y**!
 * Disable the internal soundcard and enable the correct soundcard in `/boot/config.txt`
-* Connect the raspi to the network: Static IP, create a DNS entry in your local DNS server. LAN or WLAN
+* Connect the raspi to the network (LAN or WLAN): Static IP, create a DNS entry in your local DNS server.
 * Connect the audio inputs/outputs and/or the loudspeakers.
 * Configure the default audio format for the ALSA `dmix` and `dsnoop` devices in `/etc/asound.conf`. You can decide to use other sampling rates / sample sizes. I have ripped my 1000+ CDs to FLAC, so most of my audio material is 44100/16/2 anyway. Your mileage may vary.
-arecord -D dsnoop:CARD=sndrpihifiberry,DEV=0 -vv -V stereo /dev/null | aplay -D dmix:CARD=sndrpihifiberry,DEV=0
 
         defaults.pcm.dmix.rate 44100
         defaults.pcm.dmix.format S16_LE
@@ -92,7 +91,7 @@ arecord -D dsnoop:CARD=sndrpihifiberry,DEV=0 -vv -V stereo /dev/null | aplay -D 
             snd_rpi_hifiberry_dacplusadc, 
             Hardware device with all software conversions
             
-* Unfortunately, the output shows both sources and sinks, and some sinks can also be used as sources. I'm too stupid to understand ALSA.
+* Unfortunately, the output shows both sources and sinks, and some sinks can also be used as sources. I'm just too stupid to understand ALSA.
           
 * Now you need a `.wav` file with the correct sampling rate:arecord -f cd -D dsnoop:CARD=sndrpihifiberry,DEV=0 -vv -V stereo /dev/null
 
@@ -108,10 +107,10 @@ arecord -D dsnoop:CARD=sndrpihifiberry,DEV=0 -vv -V stereo /dev/null | aplay -D 
 ### Test ALSA input (if present and desired)
 
 * Open the `alsamixer` again, but switch to the *Capture* Settings using the `F4` key.
-* Connect an audio source to the analog input (3.5mm stereo jack on DAC+ADC). This can be a mobile with a headphone jack (pump up the volume to 100% !), or the **REC** outputs of your amp. 
-* This test is the right moment to check out the input gain jumpers on the DAC+ADC. I left them in the default position (+0dB), but you have the option to add a 12dB or even 32dB gain with the jumpers. Be aware: It's digital audio processing, there is an absolute maximum peak value: if you are amplifying too much, you will have distortion. You should get as near as possible to 100% (maximize signal/noise ratio), but never reach it!
+* Connect an audio source to the analog input (3.5mm stereo jack on DAC+ADC). This can be a mobile with a headphone jack (pump up the volume on the mobile to 100% !), or the **REC** outputs of your amp. 
+* It's time now to check out the input gain jumpers on the DAC+ADC. I left them in the default position (+0dB), but you have the option to add a 12dB or even 32dB gain with the jumpers. Be aware: It's digital audio processing, there is an absolute maximum peak value: if you are amplifying too much, you will have distortion. You should get as near as possible to 100% (maximize signal/noise ratio), but never reach it!
 * Find out the correct source with `arecord -L` (output similar - or identical ? - to above)
-* You can test whether you receive any sound by using the `arec` VU meter: 
+* You can test whether you receive any sound by using the `arec` VU meter (the last line on stdout should show some movement) 
 
         arecord -f cd -D dsnoop:CARD=sndrpihifiberry,DEV=0 -vv -V stereo /dev/null
 
