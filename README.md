@@ -1,5 +1,5 @@
 # multiroom
-Step by step tutorial to install and configure a multiroom audio setup. It is based on mpd and snapcast and supports ALSA sources. Stream your vinyl records to all rooms. Or your favourite music from your mobile over bluetooth.
+Step by step tutorial to install and configure a multiroom audio setup. It is based on mpd and snapcast and supports ALSA sources. Play your local music files and internet radio stations synchronously to all rooms. Or from any bluetooth audio source (including your mobile). Or even your vinyl records.
 
 ## Design
 
@@ -14,7 +14,7 @@ Step by step tutorial to install and configure a multiroom audio setup. It is ba
 
 ### Limitations (learned the hard way)
 
-* Every soundcard seems to have one global clock for the sampling rate (maybe for the sample size too). This seems to be well known, but not well documented: You cannot record audio at 48000/16/2 from the soundcard while playing audio at 44100/16/2. I spent some hours with unclear error messages, erratic behaviour (sometimes a command worked, sometimes not) until I discovered this basic limitation. 
+* Every (?) soundcard has one global clock for the sampling rate (maybe for the sample size too). This seems to be well known, but ist not well documented: You cannot record at 48000/16/2 from the soundcard while playing something else at 44100/16/2. I spent some hours with unclear error messages, erratic behaviour (sometimes a command worked, sometimes not) until I discovered this basic limitation. 
 
 * Do **not** install mpd/snapserver on a VM. You will have dropouts. If anyone knows how to set priorities (on the KVM host and/or in the VM itself) so that the dropouts stop, I would be very happy to learn it. Install them on dedicated HW (like the Raspberry Pi).
 
@@ -24,7 +24,7 @@ Step by step tutorial to install and configure a multiroom audio setup. It is ba
 
 * Raspberry Pi (I use a *Zero W Rev 1.1*, two *3 B+ Rev 1.3* and a *4 B Rev 1.1*)
 * HifiBerry with line level in and out:  [dac+ adc](https://www.hifiberry.com/shop/boards/hifiberry-dac-adc/) 
-* HifiBerry with loudspeaker connectors (no amp needed any more): 
+* HifiBerry with integrated amp and loudspeaker connectors: 
   * 60 W: [AMP2](https://www.hifiberry.com/shop/boards/hifiberry-amp2/) 
   * 3W: [MiniAmp](https://www.hifiberry.com/shop/boards/miniamp). Louder than you think!
 * Hifi-amplifier with a separate **Rec** selector: In order to stream an analog source (connected to your amp) synchronously to all rooms (including the room with the analog source), you need to be able to send the music e.g. from your turntable to the "REC OUT" connectors while having e.g. the tuner on your loudspeakers.
@@ -33,8 +33,8 @@ Step by step tutorial to install and configure a multiroom audio setup. It is ba
 
 * **alsa**: Plain ALSA for audio input/output. No PulseAudio, no Jack.
 * **mpd**: The core of the solution is plain old mpd. All mpd clients continue to work, all music files continue to work.
-* **snapcast**: To ensure synchronous playback in all rooms. Kudos go to [badaix](https://github.com/badaix/snapcast). I also installed his [Android App](https://github.com/badaix/snapdroid) on old mobile phones that are now universal remote controls.
-* **a2dp-agent**: A Bluetooth Agent that handles a connection request from an bluetooth A2DP audio source. Original Code is [here](https://gist.github.com/mill1000/74c7473ee3b4a5b13f6325e9994ff84c). I use a patched version as I want to have the option to output the bluetooth audio either to the local ALSA card (supported by original code) **or** to an icecast stream (not supported out of the box). Details below.
+* **snapcast**: Ensures synchronous playback in all rooms. Kudos go to [badaix](https://github.com/badaix/snapcast). I also installed his [Android App](https://github.com/badaix/snapdroid) on old mobile phones that are now universal remote controls.
+* **a2dp-agent**: A Bluetooth Agent that handles a connection request from an bluetooth A2DP audio source. Original Code is [here](https://gist.github.com/mill1000/74c7473ee3b4a5b13f6325e9994ff84c). I use a patched version as I want to have the option to output the bluetooth audio either to the local ALSA card (supported by original code) **or** to an icecast stream (not supported). Details below.
 * a few glue scripts and adjusted .service files. Details below.
 
 ### Short comparison to other solutions
@@ -93,7 +93,7 @@ During my journey, I found out that playing around with audio can be tricky. If 
             
 * Unfortunately, the output shows both sources and sinks, and some sinks can also be used as sources. I'm just too stupid to understand ALSA.
           
-* Now you need a `.wav` file with the correct sampling rate:arecord -f cd -D dsnoop:CARD=sndrpihifiberry,DEV=0 -vv -V stereo /dev/null
+* Now you need a `.wav` file with the correct sampling rate:
 
         # file the_girl_tried_to_kill_me.wav 
         the_girl_tried_to_kill_me.wav: RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, stereo 44100 Hz
@@ -108,7 +108,7 @@ During my journey, I found out that playing around with audio can be tricky. If 
 
 * Open the `alsamixer` again, but switch to the *Capture* Settings using the `F4` key.
 * Connect an audio source to the analog input (3.5mm stereo jack on DAC+ADC). This can be a mobile with a headphone jack (pump up the volume on the mobile to 100% !), or the **REC** outputs of your amp. 
-* It's time now to check out the input gain jumpers on the DAC+ADC. I left them in the default position (+0dB), but you have the option to add a 12dB or even 32dB gain with the jumpers. Be aware: It's digital audio processing, there is an absolute maximum peak value: if you are amplifying too much, you will have distortion. You should get as near as possible to 100% (maximize signal/noise ratio), but never reach it!
+* It's time now to check out the input gain jumpers on the DAC+ADC. I left them in the default position (+0dB), but you have the option to add a 12dB or even 32dB gain with the jumpers. Be aware: It's digital audio processing, there is an absolute peak value: if you are amplifying too much, you will have distortion. You should get as near as possible to 100% (maximize signal/noise ratio), but never reach it!
 * Find out the correct source with `arecord -L` (output similar - or identical ? - to above)
 * You can test whether you receive any sound by using the `arec` VU meter (the last line on stdout should show some movement) 
 
