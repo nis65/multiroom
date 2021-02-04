@@ -287,7 +287,7 @@ Now feed some audio signal to the input port of the HifiBerry-Board (see above) 
     
 Even better, you can feed it as "song" on the playlist to `mpd`:
 
-    mpc -h localhost add mpc -h localhost add
+    mpc -h localhost add http://infinity:8000/alsa.ogg
     
 This adds some delay, but should basically sound identical to the solution above where we enqueued the "song" that points directly to the ALSA `dsnoop` device. However, when using `dsnoop`, the analog audio source must be on the same physical box as `mpd`. With icecast, you can read the analog input on one device and feed it over the network to `mpd` running on a different device.
 
@@ -301,15 +301,13 @@ The goal is to convert the raspi into something that looks like a bluetooth audi
 
 * You cannot attach a program to a non-existing alsa device and just wait until it exists. If you try it, the program will exit immediately with `arecord: main:828: audio open error: No such file or directory`
 * A bluetooth device is identified by its bluetooth MAC address. 
-* While bluetoothd can handle everything to actually move data from/to bluetooth, you need a so called bluetooth agent to perform the necessary steps to "pair" a bluetooth device.
+* While bluetoothd can handle everything to actually move data from/to bluetooth, you need a so called bluetooth agent to perform the necessary steps to automatically "pair" a bluetooth device.
 * There are many different usages of bluetooth, for audio we use the bluetooth A2DP profile.
-* The bluetooth standard requires the device manufacturers to implement A2DP with a 48000 sampling rate, the support of 44100 is optional. I decided to force to 44100 and hope that all my bluetooth clients will be compatible. 
-
-The goal is to convert the raspi into something that looks like a bluetooth audio sink (i.e. bluetooth loudspeakers).
+* The bluetooth standard requires the device manufacturers to implement A2DP with a 48000 sampling rate, the support of 44100 is optional. I decided to force 44100 and hope that all my bluetooth clients will be compatible. No issues so far.
 
 #### Configure bluetoothd 
 
-Warning: this is **not safe**, but it's very handy: We will configure bluetoothd to make the device discoverable forever so that you can pair whenever you want. As we dont't want to do any authentication, it is possible that a neighbour of you connects to your bluetooth device and you suddenly hear his music, his phone call, whatever. Now that you've read and understood the warning, we change `/etc/bluetooth/main.conf` as follows:
+Warning: this is **not safe**, but it's very handy: We will configure bluetoothd to make the device discoverable forever so that you can pair whenever you want. As we don't want to do any authentication, it is possible that a neighbour of you connects to your bluetooth device and you suddenly hear his music, his phone call, whatever. Now that you've read and understood the warning, we change `/etc/bluetooth/main.conf` as follows:
 
     DiscoverableTimeout = 0
     
