@@ -16,7 +16,7 @@ Step by step tutorial to install and configure a multiroom audio setup. It is ba
 
 * Every (?) soundcard has one global clock for the sampling rate (maybe for the sample size too). This seems to be well known, but ist not well documented: You cannot record at 48000/16/2 from the soundcard while playing something else at 44100/16/2. I spent some hours with unclear error messages, erratic behaviour (sometimes a command worked, sometimes not) until I discovered this basic limitation. 
 
-* Do **not** install mpd/snapserver on a VM. You will have dropouts. If anyone knows how to set priorities (on the KVM host and/or in the VM itself) so that the dropouts stop, I would be very happy to learn it. Install them on dedicated HW (like the Raspberry Pi).
+* Do **not** install mpd/snapserver on a VM. You will have dropouts. If anyone knows how to set priorities (on the KVM host and/or in the VM itself) so that the dropouts stop, I would be very happy to learn it. So install them on dedicated HW (like the Raspberry Pi).
 
 ## Overview
 
@@ -26,7 +26,7 @@ Step by step tutorial to install and configure a multiroom audio setup. It is ba
 * HifiBerry with line level in and out:  [dac+ adc](https://www.hifiberry.com/shop/boards/hifiberry-dac-adc/) 
 * HifiBerry with integrated amp and loudspeaker connectors: 
   * 60 W: [AMP2](https://www.hifiberry.com/shop/boards/hifiberry-amp2/) 
-  * 3W: [MiniAmp](https://www.hifiberry.com/shop/boards/miniamp). Louder than you think!
+  * 3W: [MiniAmp](https://www.hifiberry.com/shop/boards/miniamp). Louder than you expect!
 * Hifi-amplifier with a separate **Rec** selector: In order to stream an analog source (connected to your amp) synchronously to all rooms (including the room with the analog source), you need to be able to send the music e.g. from your turntable to the "REC OUT" connectors while having e.g. the tuner on your loudspeakers.
 
 ### Software components
@@ -34,8 +34,9 @@ Step by step tutorial to install and configure a multiroom audio setup. It is ba
 * **alsa**: Plain ALSA for audio input/output. No PulseAudio, no Jack.
 * **mpd**: The core of the solution is plain old mpd. All mpd clients continue to work, all music files continue to work.
 * **snapcast**: Ensures synchronous playback in all rooms. Kudos go to [badaix](https://github.com/badaix/snapcast). I also installed his [Android App](https://github.com/badaix/snapdroid) on old mobile phones that are now universal remote controls.
-* **a2dp-agent**: A Bluetooth Agent that handles a connection request from an bluetooth A2DP audio source. Original Code is [here](https://gist.github.com/mill1000/74c7473ee3b4a5b13f6325e9994ff84c). I use a patched version as I want to have the option to output the bluetooth audio either to the local ALSA card (supported by original code) **or** to an icecast stream (not supported). Details below.
-* a few glue scripts and adjusted .service files. Details below.
+* **bluealsa**: A daemon that is able to create a virtual ALSA sound card from an established bluetooth A2DP connection.
+* **a2dp-agent**: A Bluetooth Agent that handles a connection request from an bluetooth A2DP audio source. Original Code is [here](https://gist.github.com/mill1000/74c7473ee3b4a5b13f6325e9994ff84c). I use a patched version as I want to have the option to output the bluetooth audio either to the local ALSA card (supported by original code) **or** to an icecast stream (not supported).
+* a few glue scripts and adjusted .service files.
 
 ### Short comparison to other solutions
 
@@ -232,7 +233,7 @@ In order to stream music over icecast, you need an icecast server and one or mor
 
     apt-get install icecast
     
-The config file is `/etc/icecast2/icecast.xml`. The *ices* need to authenticate against the icecast server with the user `source`, so you need to adjust its password: 
+The config file is `/etc/icecast2/icecast.xml`. The *ices* need to authenticate against the icecast server with the user `source`, so you need to adjust its password (please choose your own with `pwgen 12 1`:
 
     <source-password>Hiesh0vahHoh</source-password>
     
@@ -254,7 +255,7 @@ There are many programs that can be used as *ice*, I started first with `ices2` 
            -ar 44100 -ac 2 \
            -ice_name "Ice Name" -ice_url http://infinity:8000/onewav.ogg \
            -ice_description "WAV to icecast (flac) via ffmpeg" -content_type 'application/ogg' \
-           icecast://source:ooWoo8nieng3@localhost:8000/onewav.ogg
+           icecast://source:Hiesh0vahHoh@localhost:8000/onewav.ogg
 
 This command will create a new icecast stream for the duration of the song. So don't wait, fire up your browser and connect to 
 
@@ -267,7 +268,105 @@ You should see the icecast server page and the stream created above. You must be
 If you can hear the sound via browser, your icecast setup works. 
 
 ### Analog input (to icecast)
+
+I know that most people will not need / implement this. But it is simpler than the bluetooth use case so it is described first.
+
+The only thing we need is a process that feeds the analog input to the icecast server and creates a stream. This is the same oneliner as above, we just read the sound from alsa and not from a `.wav` file.
+
+
+    ffmpeg -nostats -loglevel warning \
+           -f alsa -ar 44100 -ac 2 -i dsnoop:CARD=sndrpihifiberry,DEV=0  \
+           -f ogg -c:a flac \
+           -ice_name "Analog Infinity FLAC" -ice_url http://infinity:8000/alsa.ogg \
+           -ice_description "ALSA to icecast (flac) via ffmpeg" -content_type 'application/ogg' \
+           icecast://source:Hiesh0vahHoh@localhost:8000/alsa.ogg
+           
+Now feed some audio signal to the input port of the HifiBerry-Board (see above) and use the browser on your workstation to listen to stream (provided that you still have some loudspeakers connected):
+
+    http://infinity:8000/alsa.ogg
+    
+Even better, you can feed it as "song" on the playlist to `mpd`:
+
+    mpc -h localhost add mpc -h localhost add
+    
+This adds some delay, but should basically sound identical to the solution above where we enqueued the "song" that points directly to the ALSA `dsnoop` device. However, when using `dsnoop`, the analog audio source must be on the same physical box as `mpd`. With icecast, you can read the analog input on one device and feed it over the network to `mpd` running on a different device.
+
+Now you are ready  to stream your vinyl records to all rooms!
+
 ### Bluetooth input (to local alsa OR icecast)
+
+Ready for the boss fight? So let's go:
+
+The goal is to convert the raspi into something that looks like a bluetooth audio sink (i.e. bluetooth loudspeakers). However, there are some limitations that make the implementation much trickier than the *analog input* above:
+
+* You cannot attach a program to a non-existing alsa device and just wait until it exists. If you try it, the program will exit immediately with `arecord: main:828: audio open error: No such file or directory`
+* A bluetooth device is identified by its bluetooth MAC address. 
+* While bluetoothd can handle everything to actually move data from/to bluetooth, you need a so called bluetooth agent to perform the necessary steps to "pair" a bluetooth device.
+* There are many different usages of bluetooth, for audio we use the bluetooth A2DP profile.
+* The bluetooth standard requires the device manufacturers to implement A2DP with a 48000 sampling rate, the support of 44100 is optional. I decided to force to 44100 and hope that all my bluetooth clients will be compatible. 
+
+The goal is to convert the raspi into something that looks like a bluetooth audio sink (i.e. bluetooth loudspeakers).
+
+#### Configure bluetoothd 
+
+Warning: this is **not safe**, but it's very handy: We will configure bluetoothd to make the device discoverable forever so that you can pair whenever you want. As we dont't want to do any authentication, it is possible that a neighbour of you connects to your bluetooth device and you suddenly hear his music, his phone call, whatever. Now that you've read and understood the warning, we change `/etc/bluetooth/main.conf` as follows:
+
+    DiscoverableTimeout = 0
+    
+#### bluealsa
+ 
+    apt-get install bluealsa
+    
+As we want to use bluealsa for audio input only and force the sample rate to 44100, we change the `bluealsa.service` file as follows:
+  
+    dpkg-divert --divert /lib/systemd/system/bluealsa.service-DIVERTED --local --rename --add /lib/systemd/system/bluealsa.service
+    cd /lib/systemd/system
+    cp -p bluealsa.service-DIVERTED bluealsa.service
+    
+Change the ExecStart line
+
+    ExecStart=/usr/bin/bluealsa --profile=a2dp-sink --a2dp-force-audio-cd
+    
+And restart bluealsa
+
+    systemctl restart bluealsa
+
+As soon as bluealsa is properly running, you should see that the bluetooth controller has a new function:
+
+    bluetoothctl show
+
+There is a new line saying.
+
+    UUID: Audio Sink                (0000110b-0000-1000-8000-00805f9b34fb)
+
+You can verify this by stopping bluealsa and checking again. In addition, you can verify that bluealsa is properly running with alsamixer:
+
+    alsamixer -V capture -D bluealsa
+
+You will see a warning that there are no controls. That's ok, they will appear later when we have connected a bluetooth device. But when alsamixer complains about not finding the device at all, there is something wrong with bluealsa.
+
+#### Automate creation of icecast stream
+
+Assuming that you have managed manually to connect your mobile (audio source) to the RaspberryPi (A2DP audio sink), the following commandline would be sufficient to create the icecast stream from the mobile:
+
+    MAC="bluetooth mac address of connected A2DP source" 
+    arecord -f cd -D bluealsa:SRV=org.bluealsa,DEV=$MAC,PROFILE=a2dp --dump-hw-params | ffmpeg -nostats -loglevel warning \
+            -f s16le \
+            -ar 44100 -ac 2 \
+            -i - \
+            -f ogg -c:a flac \
+            -ice_name "Infinity Blue FLAC" -ice_url http://infinity:8000/blue.ogg \
+            -ice_description "Bluealsa to icecast (flac) via ffmpeg" -content_type 'application/ogg' \
+            icecast://source:Hiesh0vahHoh@localhost:8000/blue.ogg
+            
+If you want to try that out now, you would need to to pair and trust your mobile using `bluetoothctl` on the raspi before starting the commmand above. Don't forget to put the mobile volume to 100%...
+
+#### XXXXXX
+
+to be continued
+
+
+
 ## Wishlist
 
 * Better audio quality on analog input: Tests comparing "loopback" with Cinch-Cable to "loopback" via arecord/aplay showed, that higher sampling rates on input actually make an audible difference. Even for my old ears. However, this conflicts with the requirement that we need to have the same sampling rate on input and output and want to limit audio conversions to a minimum. 
