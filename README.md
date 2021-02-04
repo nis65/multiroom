@@ -56,7 +56,7 @@ During my journey, I found out that playing around with audio can be tricky. If 
 
 * Install Raspbian (based on Debian buster). Be sure to set the keyboard mapping correct, as the default password contains a **y**!
 * Disable the internal soundcard and enable the correct soundcard in `/boot/config.txt`
-* Connect the raspi to the network (LAN or WLAN): Static IP, create a DNS entry in your local DNS server.
+* Connect the raspi to the network (LAN or WLAN): Static IP, create a DNS entry in your local DNS server. Choose the hostname wisely, you will use it to connect to your raspi with the mpd controller, the snapcast controller and clients, bluetooth clients etc. The name is transparent to the end users. I called my boxes by the room they are in (like bathroom) or after the loudspeakers they play sound to (like infinity). 
 * Connect the audio inputs/outputs and/or the loudspeakers.
 * Configure the default audio format for the ALSA `dmix` and `dsnoop` devices in `/etc/asound.conf`. You can decide to use other sampling rates / sample sizes. I have ripped my 1000+ CDs to FLAC, so most of my audio material is 44100/16/2 anyway. Your mileage may vary.
 
@@ -121,8 +121,156 @@ During my journey, I found out that playing around with audio can be tricky. If 
 * You should hear now on your loudspeakers what you are feeding to the analog input. This is the moment to optimize all mixer settings (being it ALSA or on your sound setup). In general, all volume controls should be at 100% except the very last one controlling the final sink. This ensures maximum signal/noise ratio.
 
 ### Snapcast
+
+The snapcast server needs to run on the same machine as mpd, as the music is sent to snapcast using a named pipe in `/tmp/`. In my case this is the **infinity** raspi. As I want to use the alsa output too, I need both client and server on this raspi. On all others, you just need the client (Hint: The packaging for debian and for raspbian differs in the naming of the user, I describe the raspbian way here).
+
+    apt-get install snapserver snapclient 
+    
+`/etc/default/snapserver`
+
+    SNAPSERVER_OPTS="-s pipe:///tmp/snapfifo?name=mpd&sampleformat=44100:16:2&codec=flac --buffer=40"
+    
+If you have dropouts, increase the buffer value (which causes the the latency from audio input to output to increase)
+
+#### snapclient 
+
+The default output device for snapclient is the alsa default device, which happens (unfortunately) to be the `hw` device. As said before, you should use `dmix` whenever possible. Therefore we need first to find out by what number the `dmix` is known to snapclient:
+
+    snapclient -l 
+    
+    ...
+    3: dmix:CARD=sndrpihifiberry,DEV=0
+    snd_rpi_hifiberry_dacplusadc, HiFiBerry DAC+ADC HiFi multicodec-0
+    Direct sample mixing device
+    ...
+    
+The config file `/etc/default/snapclient` is therefore
+
+    START_SNAPCLIENT=true
+    SNAPCLIENT_OPTS="--user _snapclient:audio -h snap.iselin.net -s 3 --hostID infinityID"
+
+The hostID is helpful to identify all snapclients properly.
+
+#### Test snap
+
+If you have `mpd` already running, stop it.
+
+    systemctl stop mpd
+    systemctl start snapserver
+    systemctl start snapclient
+    
+Verify that both snapserver and snapclient are running (e.g. with `ps -ef | grep snap | grep -v grep`) 
+
+If you still don't have a `/tmp/snapfifo` yet, create it so that it looks like this
+
+    prw-rw-rw- 1 _snapserver _snapserver 0 Feb  3 23:17 /tmp/snapfifo
+
+Now try to feed the same `.wav` file as above to the snapserver input:
+    
+    sox the_girl_tried_to_kill_me.wav -t raw - > /tmp/snapfifo
+
+You should now hear the song on your loudspeakers as above (with some delay added). 
+
 ### mpd
+
+    apt-get install mpd
+    
+Add to the config the following block (you might want to change a lot of other things, but this is key to send the mpd output to the snapserver:
+
+    audio_output { 
+        type            "fifo"
+        name            "my pipe"
+        path            "/tmp/snapfifo"
+        format          "44100:16:2"
+        mixer_type      "software"
+    }
+    
+According to [christf](https://github.com/christf/snapcastc), it might be preferrable to use the mpd `pipe` output instead of the `fifo` output. I did not test it, `fifo` works for me without issues.
+
+#### Test mpd
+
+The easiest way to test mpd is to connect to it with a client (I use `mpc` on the command line/in scripts, `sonata` in Gnome) and feed an internet radio station to it. To connect to mpd, you need to know the hostname (**infinity** in my case) and the port (default **6600**).
+
+In order to enqueue a radio station and play it, use (on the raspi with `mpd`)
+
+     mpc -h localhost add http://stream-uk1.radioparadise.com/aac-320
+     mpc -h localhost play 
+     
+If you can hear sound now, you have verified that the communication from **mpd** to **snapserver** to **snapclient** to **alsa** works :-) If not, you need to debug!
+
+#### Customize mpd: Add alsa input config (with DAC+ADC)
+
+As I discovered only very late during my experiments, mpd can actually read from an alsa source directly. We configure the source in the config file:
+
+    input { 
+            plugin "alsa"
+            default_format "44100:16:2"
+            auto_resample "no"
+            auto_channels "no"
+            auto_format "no"
+    }
+    
+If you connect again something to the raspi input connector and have verified with `arecord` that the soundcard actually receives audible sound, then enque the following to the mpd playlist
+
+      mpc -h localhost add alsa://dsnoop:CARD=sndrpihifiberry,DEV=0
+      
+When you play this "song", `mpd` will put the sound from the alsa input into the snapfifo and you can hear (in all rooms) what is currently fed to the local ALSA source). This shortcut works only on the raspi where mpd is running, to feed analog (or bluetooth) audio from remote raspis, we need to introduce another technology. Read on. 
+
+#### Customize mpd: Add music collection
+
+If you have a music collection on your **NAS** it is time to mount the music collection from there onto `/var/lib/mpd/music` and have mpd index the files:
+
+     mpc -h localhost update
+     
+Depending on the size of your collection, the network and NAS speed, this can take a while. Watch `tail -f /var/log/mpd/mpd.log` for completion.
+
+### Icecast
+
+Icecast has been designed to create an internet radio station. We will use icecast on every raspi that needs to feed at least one input (analog or bluetooth) over the network to the central mpd. Other solutions solve this problem by installing mpd on every raspi (i.e. there is not one "central" mpd). This is a very symmetric and therefore beautiful solution, but I am not sure if this setup would work for bluetooth sources too. 
+
+In order to stream music over icecast, you need an icecast server and one or more so called *ices*. Every *ice* can create an independent stream in the icecast server.
+
+    apt-get install icecast
+    
+The config file is `/etc/icecast2/icecast.xml`. The *ices* need to authenticate against the icecast server with the user `source`, so you need to adjust its password: 
+
+    <source-password>Hiesh0vahHoh</source-password>
+    
+Not needed for the moment, but I suggest to set the relay- and admin- Passwords too. If - and only if -  you are the only person that connects to the icecast Server, you can set them all to the same value. 
+
+Check the following setting, we will use it in the next section.
+
+    <listen-socket>
+        <port>8000</port>
+    </listen-socket>
+    
+#### ices: ffmpeg (with local test file) 
+
+There are many programs that can be used as *ice*, I started first with `ices2` which is configured via xml files similar to the icecast server. I discovered  `ffmpeg` later and am working now with this only - it is much simpler for me to see all relevant parameters on the command line than set options dispersed in an xml file. In order to play an audio file to the icecast server, use
+
+    ffmpeg -re -loglevel warning \
+           -i the_girl_tried_to_kill_me.wav  \
+           -f ogg -c:a flac \
+           -ar 44100 -ac 2 \
+           -ice_name "Ice Name" -ice_url http://infinity:8000/onewav.ogg \
+           -ice_description "WAV to icecast (flac) via ffmpeg" -content_type 'application/ogg' \
+           icecast://source:ooWoo8nieng3@localhost:8000/onewav.ogg
+
+This command will create a new icecast stream for the duration of the song. So don't wait, fire up your browser and connect to 
+
+    http://infinity:8000/
+    
+You should see the icecast server page and the stream created above. You must be able to listen to the stream in the browser: Either click the *play* button or enter the stream URL directly:
+
+    http://infinity:8000/onewav.ogg
+    
+If you can hear the sound via browser, your icecast setup works. 
+
 ### Analog input (to icecast)
 ### Bluetooth input (to local alsa OR icecast)
 ## Wishlist
+
+* Better audio quality on analog input: Tests comparing "loopback" with Cinch-Cable to "loopback" via arecord/aplay showed, that higher sampling rates on input actually make an audible difference. Even for my old ears. However, this conflicts with the requirement that we need to have the same sampling rate on input and output and want to limit audio conversions to a minimum. 
+
+* Easy Switch Bluetooth-Input between local alsa out (lower latency, but no multiroom, suitable e.g. for watching TV) and icecast (high latency, but multiroom, suitable for listening to music only).
 
