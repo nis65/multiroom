@@ -382,7 +382,7 @@ Now that your mobile (audio source) is connected to the RaspberryPi (A2DP audio 
 
 If `arecord` complains about `no such device`, the pairing did not work or is already terminated for some reason. Or `bluealsa` is stopped. Otherwise, you can now hear the sound from the loudspeakers connected to the raspi. So this basically converts your raspi into a bluetooth audio converter.
 
-**Note**: As we are outputting to the `dmix` and not the `hw` device, it's possible to still have e.ge. the snapclient playing audio and **at the same time** the piepline above plays the bluetooth sound.
+**Note**: As we are outputting to the `dmix` and not the `hw` device, it's possible to still have e.ge. the snapclient playing audio and **at the same time** the pipeline above plays the bluetooth sound.
 
 #### Manual creation of icecast stream
 
