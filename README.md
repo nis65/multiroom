@@ -380,6 +380,8 @@ Now that your mobile (audio source) is connected to the RaspberryPi (A2DP audio 
 
 If `arecord` complains about `no such device`, the pairing did not work or is already terminated for some reason. Or `bluealsa` is stopped. Otherwise, you can now hear the sound from the loudspeakers connected to the raspi. So this basically converts your raspi into a bluetooth audio converter.
 
+**Note**: As we are outputting to the `dmix` and not the `hw` device, it's possible to still have e.ge. the snapclient playing audio and **at the same time** the piepline above plays the bluetooth sound.
+
 #### Manual creation of icecast stream
 
 Now that your mobile (audio source) is connected to the RaspberryPi (A2DP audio sink), the following commandline would be sufficient to create the icecast stream from the mobile:
@@ -400,12 +402,26 @@ As before, fire up your browser, go to `http://infinity:8000/blue.ogg`  and you 
 
 Now we have all low level building blocks together and need to glue them together
 
-...
+* **Analog input to icecast**
+  *  `/etc/systemd/system/ffmpeg.service`
+  *  `/usr/local/bin/alsa-to-icecast`: a simple loop around the `ffmpeg` command described above
+* **Bluetoooth input to alsa or to icecast
+  Sometimes you want to use the raspi just as a local bluetooth loudspeaker (no multiroom, but lower latency). Typical use case would be watching a video. Sometimes you really want to stream bluetooth to all rooms (at the price of higher latency). Currently, I have implemented both and use a config file to define what should happen after a bluetooth connection. It would be nice if there to have a hardware button and an LED on the raspi that would allow you to select the "bluetooth output mode". 
+  * `/usr/local/bin/a2dp-agent`: Patched Version that starts a shell script upon connection
+  * `/usr/local/bin/a2dp-to-ice`: Shell script called from `a2dp-agent` to fire up the needed process pipelines to send the A2DP audio to alsa or bluetooth
+    
+## ToDo 
 
-
+* rename some of the scripts a s the name does not properly reflect their respective functions.
+* properly fork a2dp-agent
+* properly put in git the glue scripts
+  
 ## Wishlist
 
-* Better audio quality on analog input: Tests comparing "loopback" with Cinch-Cable to "loopback" via arecord/aplay showed, that higher sampling rates on input actually make an audible difference. Even for my old ears. However, this conflicts with the requirement that we need to have the same sampling rate on input and output and want to limit audio conversions to a minimum. 
+* It is possible to bypass `mpd` in certain use cases while still maintaining multiroom capabilities: The audio is played directly to the snapserver fifo. As the fifo should (can ?) only be written to by one process, you would need to stop `mpd` before e.g. starting `arecord ... > /tmp/snapfifo` and start it again when needed. This will need one or more additional glue scripts to switch mode **and** a way to call them remotely (ssh/web/...). As long as `mpd` is running, you can choose from many different remote `mpd` control clients - for many plattforms. 
 
-* Easy Switch Bluetooth-Input between local alsa out (lower latency, but no multiroom, suitable e.g. for watching TV) and icecast (high latency, but multiroom, suitable for listening to music only).
+* Better audio quality on analog input: Tests comparing "loopback" with Cinch-Cable to "loopback" via arecord/aplay showed that higher sampling rates on input actually make an audible difference. Even for my old ears. However, this conflicts with the requirement that we need to have the same sampling rate on input and output and want to limit audio conversions to a minimum. 
 
+* Easy Switch Bluetooth-Input config between local alsa out (lower latency, but no multiroom, suitable e.g. for watching TV) and icecast out (high latency, but multiroom, suitable for listening to music only).
+
+* Technical: The current implementation in `a2dp-agent` has a flaw that has not functional impact, but is *not nice*: After `a2dp-agent` has connected a bluetooth device and has called `a2dp-to-ice`, the latter runs as daughter process of the former - as long as the bluetooth connection is established. After termination of the bluetooth connection, the `arecord` process fails (because the alsa device vanished) and `a2dp-to-ice` terminates. So far so good. But now the patched `a2dp-agent` does not immeadiately *reap* the terminated subprocess, so you will see in `ps` a zombie `a2dp-to-ice` process. The *reaping* happens when a new bluetooth connection is established only.
