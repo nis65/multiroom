@@ -36,6 +36,7 @@ Step by step tutorial to install and configure a multiroom audio setup. It is ba
 * **snapcast**: Ensures synchronous playback in all rooms. Kudos go to [badaix](https://github.com/badaix/snapcast). I also installed his [Android App](https://github.com/badaix/snapdroid) on old mobile phones that are now universal remote controls.
 * **bluealsa**: A daemon that is able to create a virtual ALSA sound card from an established bluetooth A2DP connection.
 * **a2dp-agent**: A Bluetooth Agent that handles a connection request from an bluetooth A2DP audio source. Original Code is [here](https://gist.github.com/mill1000/74c7473ee3b4a5b13f6325e9994ff84c). I use a patched version as I want to have the option to output the bluetooth audio either to the local ALSA card (supported by original code) **or** to an icecast stream (not supported).
+* **icecast**, **ffmpeg**: Used to distribute audio from analog/bluetooth to mpd. 
 * a few glue scripts and adjusted .service files.
 
 ### Short comparison to other solutions
