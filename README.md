@@ -61,7 +61,7 @@ During my journey, I found out that playing around with audio can be tricky. If 
 * Connect the audio inputs/outputs and/or the loudspeakers.
 * Configure the default audio format for the ALSA `dmix` and `dsnoop` devices in `/etc/asound.conf`. You can decide to use other sampling rates / sample sizes.
 
-  **Warning**: if you do so, you have to adjust all command line params in this tutorial to match this. Remember: In this tutorial, I always work with the same explicit audio format everywhere, so you will have to adjust almost every command line in this tutorial. I have ripped my 1000+ CDs to FLAC, so most of my audio material is 44100/16/2. 
+  **Warning**: In this tutorial, I always work with the same explicit audio format everywhere, so you will have to adjust almost every command line in this tutorial. I have ripped my 1000+ CDs to FLAC, so most of my audio material is 44100/16/2. 
 
         defaults.pcm.dmix.rate 44100
         defaults.pcm.dmix.format S16_LE
