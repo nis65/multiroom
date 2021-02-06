@@ -414,6 +414,7 @@ Now we have all low level building blocks together and need to glue them togethe
     
 ## ToDo 
 
+* add a chapter about latency and add a few pictures to visualize what is going on / where the audio stream flows ...
 * rename some of the scripts a s the name does not properly reflect their respective functions.
 * properly fork a2dp-agent
 * properly put the glue scripts here in github
