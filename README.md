@@ -413,19 +413,32 @@ Now we have all low level building blocks together and need to glue them togethe
   * `/usr/local/bin/a2dp-agent`: Patched Version that starts a shell script upon connection
   * `/usr/local/bin/a2dp-to-ice`: Shell script called from `a2dp-agent` to fire up the needed process pipelines to send the A2DP audio to alsa or bluetooth
   
-## Latency
+## Plumbing: from ALSA source to ALSA sink
 
-Every additional handover of the audio stream from a process to the next introduces some additional latency (i.e. the time it takes from an audio signal entering the system until it gets output by the loudspeakers). You may have noticed one or the other `buffer` setting. Every audio processing process needs to process some samples at once. The bigger the buffer, the bigger the latency - but the smaller the chance of dropouts. So buffers should be just big enough to prevent dropouts. The exact value is probably dependent on your environment. The following picture shows various configurations implemented above, grouped by latency.
+The tutorial above introduced multiple building blocks for audio processing. The picture below shows various configurations how to transport audio from an ALSA source (on top) to an ALSA sink (at the bottom). Most of them were built in the tutorial above. The simplest configuration with the lowest latency is on the right, the full picture (but still without bluetooth) on the left. 
 
 The horizontal lines at the top and the bottom mark the boundary between the ALSA driver (outside) and the audio processing userspace programs (inside). Audio data flows from top ("source") to bottom ("sink").
 
-When a process has more than one input (`mpd`), there is an easy way to select one of them.
+Every additional handover of the audio stream from a process to the next adds some latency (i.e. the time it takes from an audio signal entering the system until it gets output by the loudspeakers). A latency of 0 is not possible, every audio process first reads a few samples (a *block*) at once, and starts to output only after the output *block* is complete. 
+
+The *block* size is sometimes called `buffer`(but can have various names), the size is sometimes defined on client, sometimes no server side. Read the man pages to find out the configuration option name. 
+
+The bigger the buffer, the bigger the latency - but the smaller the chance of dropouts. So buffers should be just big enough to prevent dropouts. The exact value is likely to be dependent on your environment. 
+
+When a process has more than one input (`mpd`), there is an easy way to select one of them (i.e. by use of a client). But if you wish to switch the input e.g. of `snapclient`, you will need to stop `snapclient` and start again with a different `configuration`
 
 When a process has more than one output, multiple outputs can be driven at once. In the special case of `snapserver`, you even have the promise of the audio being played synchronously on all clients.
 
+The vertical size is **not** in relation to the latency added. The processes are aligned horizontally so that the same interface is at the same level.
+
 ![](ALSArec2ALSAplay.png)
 
-The vertical size is **not** in relation to the latency added. The processes are aligned horizontally so that the same interface is at the same level.
+## Adding bluetooth to the picture
+
+As `bluealsa` emulates an ALSA soundcard, `bluealsa` would be *outside* the horizontal bars of the picture above. Zooming out (and ignoring all the details *inside*), `bluealsa` fits in as follows:
+
+XXXXXXXXXXXXXXXXXX
+
     
 ## ToDo 
 
