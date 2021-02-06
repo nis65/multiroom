@@ -59,7 +59,9 @@ During my journey, I found out that playing around with audio can be tricky. If 
 * Disable the internal soundcard and enable the correct soundcard in `/boot/config.txt`
 * Connect the raspi to the network (LAN or WLAN): Static IP, create a DNS entry in your local DNS server. Choose the hostname wisely, you will use it to connect to your raspi with the mpd controller, the snapcast controller and clients, bluetooth clients etc. The name is transparent to the end users. I called my boxes by the room they are in (like bathroom) or after the loudspeakers they play sound to (like infinity). 
 * Connect the audio inputs/outputs and/or the loudspeakers.
-* Configure the default audio format for the ALSA `dmix` and `dsnoop` devices in `/etc/asound.conf`. You can decide to use other sampling rates / sample sizes. **Warning**: if you do so, you have to adjust all command line params in this tutorial to match this. Remember: In this tutorial, I always work with the same explicit audio format everywhere, so you will have to adjust almost every command line in this tutorial. I have ripped my 1000+ CDs to FLAC, so most of my audio material is 44100/16/2. 
+* Configure the default audio format for the ALSA `dmix` and `dsnoop` devices in `/etc/asound.conf`. You can decide to use other sampling rates / sample sizes.
+
+  **Warning**: if you do so, you have to adjust all command line params in this tutorial to match this. Remember: In this tutorial, I always work with the same explicit audio format everywhere, so you will have to adjust almost every command line in this tutorial. I have ripped my 1000+ CDs to FLAC, so most of my audio material is 44100/16/2. 
 
         defaults.pcm.dmix.rate 44100
         defaults.pcm.dmix.format S16_LE
