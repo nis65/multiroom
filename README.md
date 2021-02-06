@@ -25,7 +25,7 @@ Step by step tutorial to install and configure a multiroom audio setup. It is ba
 * Raspberry Pi (I use a *Zero W Rev 1.1*, two *3 B+ Rev 1.3* and a *4 B Rev 1.1*)
 * HifiBerry with line level in and out:  [dac+ adc](https://www.hifiberry.com/shop/boards/hifiberry-dac-adc/) 
 * HifiBerry with integrated amp and loudspeaker connectors: 
-  * 60 W: [AMP2](https://www.hifiberry.com/shop/boards/hifiberry-amp2/) 
+  * 60W: [AMP2](https://www.hifiberry.com/shop/boards/hifiberry-amp2/) 
   * 3W: [MiniAmp](https://www.hifiberry.com/shop/boards/miniamp). Louder than you expect!
 * Hifi-amplifier with a separate **Rec** selector: In order to stream an analog source (connected to your amp) synchronously to all rooms (including the room with the analog source), you need to be able to send the music e.g. from your turntable to the "REC OUT" connectors while having e.g. the tuner on your loudspeakers.
 
@@ -47,7 +47,7 @@ Step by step tutorial to install and configure a multiroom audio setup. It is ba
 * [frafall/multiroom](https://github.com/frafall/multiroom): Full media center and multiroom, Kodi integration etc. Bloated for my use case.
 * [Wireless Multi-Room Audio System For Home](https://github.com/skalavala/Multi-Room-Audio-Centralized-Audio-for-Home): Uses mopidy (vs mpd) and PulseAudio (vs ALSA).
 
-So it looks like I have reinvented the wheel - but only partially. None of the solutions above integrate bluetooth **and** analog sources.
+So it looks like I have reinvented the wheel - but only partially. None of the solutions above integrate bluetooth **and** analog sources. And I learned a lot!
 
 ## Build it
 
@@ -59,7 +59,7 @@ During my journey, I found out that playing around with audio can be tricky. If 
 * Disable the internal soundcard and enable the correct soundcard in `/boot/config.txt`
 * Connect the raspi to the network (LAN or WLAN): Static IP, create a DNS entry in your local DNS server. Choose the hostname wisely, you will use it to connect to your raspi with the mpd controller, the snapcast controller and clients, bluetooth clients etc. The name is transparent to the end users. I called my boxes by the room they are in (like bathroom) or after the loudspeakers they play sound to (like infinity). 
 * Connect the audio inputs/outputs and/or the loudspeakers.
-* Configure the default audio format for the ALSA `dmix` and `dsnoop` devices in `/etc/asound.conf`. You can decide to use other sampling rates / sample sizes. I have ripped my 1000+ CDs to FLAC, so most of my audio material is 44100/16/2 anyway. Your mileage may vary.
+* Configure the default audio format for the ALSA `dmix` and `dsnoop` devices in `/etc/asound.conf`. You can decide to use other sampling rates / sample sizes. **Warning**: if you do so, you have to adjust all command line params in this tutorial to match this. Remember: In this tutorial, I always work with the same explicit audio format everywhere, so you will have to adjust almost every command line in this tutorial. I have ripped my 1000+ CDs to FLAC, so most of my audio material is 44100/16/2. 
 
         defaults.pcm.dmix.rate 44100
         defaults.pcm.dmix.format S16_LE
@@ -267,9 +267,9 @@ You should see the icecast server page and the stream created above. You must be
     
 If you can hear the sound via browser, your icecast setup works. 
 
-### Analog input (to icecast)
+### Analog input to icecast
 
-I know that most people will not need / implement this. But it is simpler than the bluetooth use case so it is described first.
+Even if you don't do/need this, please read this short section. It helps to understand what we will do with bluetooth later.
 
 The only thing we need is a process that feeds the analog input to the icecast server and creates a stream. This is the same oneliner as above, we just read the sound from alsa and not from a `.wav` file.
 
@@ -293,14 +293,14 @@ This adds some delay, but should basically sound identical to the solution above
 
 Now you are ready  to stream your vinyl records to all rooms!
 
-### Bluetooth input (to local alsa OR icecast)
+### Bluetooth input (to alsa or icecast)
 
 Ready for the boss fight? So let's go:
 
 The goal is to convert the raspi into something that looks like a bluetooth audio sink (i.e. bluetooth loudspeakers). However, there are some limitations that make the implementation much trickier than the *analog input* above:
 
 * You cannot attach a program to a non-existing alsa device and just wait until it exists. If you try it, the program will exit immediately with `arecord: main:828: audio open error: No such file or directory`
-* A bluetooth device is identified by its bluetooth MAC address. 
+* A bluetooth device is identified by its (hopefully unique) bluetooth MAC address. 
 * While bluetoothd can handle everything to actually move data from/to bluetooth, you need a so called bluetooth agent to perform the necessary steps to automatically "pair" a bluetooth device.
 * There are many different usages of bluetooth, for audio we use the bluetooth A2DP profile.
 * The bluetooth standard requires the device manufacturers to implement A2DP with a 48000 sampling rate, the support of 44100 is optional. I decided to force 44100 and hope that all my bluetooth clients will be compatible. No issues so far.
@@ -423,5 +423,7 @@ Now we have all low level building blocks together and need to glue them togethe
 * Better audio quality on analog input: Tests comparing "loopback" with Cinch-Cable to "loopback" via arecord/aplay showed that higher sampling rates on input actually make an audible difference. Even for my old ears. However, this conflicts with the requirement that we need to have the same sampling rate on input and output and want to limit audio conversions to a minimum. 
 
 * Easy Switch Bluetooth-Input config between local alsa out (lower latency, but no multiroom, suitable e.g. for watching TV) and icecast out (high latency, but multiroom, suitable for listening to music only).
+
+* Easy enable/disable pairing so that you don't have to fear your neighbours bluetooth clients any more.
 
 * Technical: The current implementation in `a2dp-agent` has a flaw that has not functional impact, but is *not nice*: After `a2dp-agent` has connected a bluetooth device and has called `a2dp-to-ice`, the latter runs as daughter process of the former - as long as the bluetooth connection is established. After termination of the bluetooth connection, the `arecord` process fails (because the alsa device vanished) and `a2dp-to-ice` terminates. So far so good. But now the patched `a2dp-agent` does not immeadiately *reap* the terminated subprocess, so you will see in `ps` a zombie `a2dp-to-ice` process. The *reaping* happens when a new bluetooth connection is established only.
