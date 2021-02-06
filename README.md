@@ -416,7 +416,7 @@ Now we have all low level building blocks together and need to glue them togethe
 
 * rename some of the scripts a s the name does not properly reflect their respective functions.
 * properly fork a2dp-agent
-* properly put in git the glue scripts
+* properly put the glue scripts here in github
   
 ## Wishlist
 
