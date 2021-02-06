@@ -343,9 +343,46 @@ You can verify this by stopping bluealsa and checking again. In addition, you ca
 
 You will see a warning that there are no controls. That's ok, they will appear later when we have connected a bluetooth device. But when alsamixer complains about not finding the device at all, there is something wrong with bluealsa.
 
-#### Automate creation of icecast stream
+#### Manual bluetooth pairing
 
-Assuming that you have managed manually to connect your mobile (audio source) to the RaspberryPi (A2DP audio sink), the following commandline would be sufficient to create the icecast stream from the mobile:
+In order to connect your mobile to the raspi over bluetooth, you need `bluetoothctl`:
+
+On your mobile, start playing any audio (I discovered that when you don't play any music, the bluetooth-connection dies. Unclear whether this is a (power saving ) feature of the mobile or a bug somewhere. Don't panic, this is only an issue when you manually try to pair the device.).
+
+On your mobile, search for bluetooth devices, you should see `ìnfinity` (or whatever hostname you chose). The raspi should appear like any bluetooth loudspeaker (sometimes as a headset).
+
+On the raspi, start `bluetoothctl` (a bluetooth agent)
+
+    [bluetooth]# list
+      Controller DC:A6:32:34:6E:91 infinity [default]
+    [bluetooth]# scan on
+      ...
+      [NEW] Device 20:39:56:AF:C1:8B Nokia7
+      ...
+    [bluetooth]# pair 20:39:56:AF:C1:8B
+
+As far as I found out, you don't need to `trust` the device. 
+
+    [bluetooth]# info 20:39:56:AF:C1:8B
+       ...
+       Paired: yes
+       Trusted: no
+       Connected: yes
+
+The mobile is still appears to play music, but you can't hear anything anymore because the sound goes to bluetooth (and not the mobile's speakers any more). 
+
+#### Manually play bluetooth audio to the raspi
+
+Now that your mobile (audio source) is connected to the RaspberryPi (A2DP audio sink), this should work
+
+    MAC="20:39:56:AF:C1:8B" 
+    arecord -f cd -D bluealsa:SRV=org.bluealsa,DEV=$MAC,PROFILE=a2dp --dump-hw-params | aplay -f cd -D dmix:CARD=sndrpihifiberry,DEV=0 --dump-hw-params    
+
+If `arecord` complains about `no such device`, the pairing did not work or is already terminated for some reason. Or `bluealsa` is stopped. Otherwise, you can now hear the sound from the loudspeakers connected to the raspi. So this basically converts your raspi into a bluetooth audio converter.
+
+#### Manual creation of icecast stream
+
+Now that your mobile (audio source) is connected to the RaspberryPi (A2DP audio sink), the following commandline would be sufficient to create the icecast stream from the mobile:
 
     MAC="bluetooth mac address of connected A2DP source" 
     arecord -f cd -D bluealsa:SRV=org.bluealsa,DEV=$MAC,PROFILE=a2dp --dump-hw-params | ffmpeg -nostats -loglevel warning \
@@ -357,12 +394,13 @@ Assuming that you have managed manually to connect your mobile (audio source) to
             -ice_description "Bluealsa to icecast (flac) via ffmpeg" -content_type 'application/ogg' \
             icecast://source:Hiesh0vahHoh@localhost:8000/blue.ogg
             
-If you want to try that out now, you would need to to pair and trust your mobile using `bluetoothctl` on the raspi before starting the commmand above. Don't forget to put the mobile volume to 100%...
+As before, fire up your browser, go to `http://infinity:8000/blue.ogg`  and you should hear the mobile's sound on the loudspeakers of your desktop. If not, check that the bluetooth volume of your mobile is at 100% (again).
 
-#### XXXXXX
+#### Automate all this 
 
-to be continued
+Now we have all low level building blocks together and need to glue them together
 
+...
 
 
 ## Wishlist
