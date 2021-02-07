@@ -433,28 +433,31 @@ The vertical size is **not** in relation to the latency added. The processes are
 
 ![](ALSArec2ALSAplay.png)
 
-## Adding bluetooth to the picture
+## Outside ALSA: Soundcard and bluetooth
 
-As `bluealsa` emulates an ALSA soundcard, `bluealsa` would be *outside* the horizontal bars of the picture above. Zooming out (and ignoring all the details *inside*), `bluealsa` fits in as follows:
+The following diagram shows what is happening **before** entering ALSA and after exiting ALSA.
 
-XXXXXXXXXXXXXXXXXX
+The bluetooth connection is shown only for the input side (i.e. the raspi is a bluetooth A2DP **sink** only). You could use `bluealsa` for output too, but as synchronous output is the core goal, it does not make sense to add bluetooth to the output path: I am quite sure that even if you would manually set a different latency for bluetooth (typical: 200ms), you would have slightly different latencies after every boot, for every different bluetooth A2DP sink etc. But feel free to test yourself.
+
+In case you didn't know yet: **ADC** means **a**nalog **d**igital **c**onversion (i.e. converting an analog input into a digitized sample stream) and **DAC** for the opposite (converting a digital input stream into an analog output).
+
+![](outsideALSA.png)
 
     
 ## ToDo 
 
-* add a chapter about latency and add a few pictures to visualize what is going on / where the audio stream flows ...
-* rename some of the scripts a s the name does not properly reflect their respective functions.
+* rename some of the scripts as the name does not properly reflect their respective functions any more
 * properly fork a2dp-agent
-* properly put the glue scripts here in github
+* properly put all glue scripts here in github
   
 ## Wishlist
 
-* It is possible to bypass `mpd` in certain use cases while still maintaining multiroom capabilities: The audio is played directly to the snapserver fifo. As the fifo should (can ?) only be written to by one process, you would need to stop `mpd` before e.g. starting `arecord ... > /tmp/snapfifo` and start it again when needed. This will need one or more additional glue scripts to switch mode **and** a way to call them remotely (ssh/web/...). As long as `mpd` is running, you can choose from many different remote `mpd` control clients - for many plattforms. 
+* It is possible to bypass `mpd` in certain use cases while still maintaining multiroom capabilities: The audio should be played directly to the snapserver fifo. As the fifo should (can ?) only be written to by one process, you would need to stop `mpd` before e.g. starting `arecord ... > /tmp/snapfifo` and start it again when needed. This will need one or more additional glue scripts to switch mode **and** a way to call them remotely (ssh/web/...). As long as `mpd` is running, you can choose from many different remote `mpd` control clients - for many plattforms. 
 
 * Better audio quality on analog input: Tests comparing "loopback" with Cinch-Cable to "loopback" via arecord/aplay showed that higher sampling rates on input actually make an audible difference. Even for my old ears. However, this conflicts with the requirement that we need to have the same sampling rate on input and output and want to limit audio conversions to a minimum. 
 
-* Easy Switch Bluetooth-Input config between local alsa out (lower latency, but no multiroom, suitable e.g. for watching TV) and icecast out (high latency, but multiroom, suitable for listening to music only).
+* Easy switch bluetooth input config between local alsa out (lower latency, but no multiroom, suitable e.g. for watching TV) and icecast out (high latency, but multiroom, suitable for listening to music only). Currently this is in a config file that is read whenever a new A2DP client is paired (and can be changed on the raspi using a text editor).
 
-* Easy enable/disable pairing so that you don't have to fear your neighbours bluetooth clients any more.
+* Easy enable/disable pairing so that you don't have to fear your neighbour's bluetooth clients any more.
 
-* Technical: The current implementation in `a2dp-agent` has a flaw that has not functional impact, but is *not nice*: After `a2dp-agent` has connected a bluetooth device and has called `a2dp-to-ice`, the latter runs as daughter process of the former - as long as the bluetooth connection is established. After termination of the bluetooth connection, the `arecord` process fails (because the alsa device vanished) and `a2dp-to-ice` terminates. So far so good. But now the patched `a2dp-agent` does not immediately *reap* the terminated subprocess, so you will see in `ps` a zombie `a2dp-to-ice` process. The *reaping* happens when a new bluetooth connection is established only.
+* Technical: The current patch of `a2dp-agent` has a flaw (without functional impact, but definitely *not nice*): After `a2dp-agent` has connected a bluetooth device and has called `a2dp-to-ice`, the latter runs as daughter process of the former - as long as the bluetooth connection is up. After termination of the bluetooth connection, the `arecord` process fails (because the alsa device vanished) and `a2dp-to-ice` terminates. So far so good. But now the patched `a2dp-agent` does not immediately *reap* the terminated subprocess, so you will see in `ps` a zombie `a2dp-to-ice` process. The *reaping* happens when a new bluetooth connection is established only.
