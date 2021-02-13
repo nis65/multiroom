@@ -12,11 +12,42 @@ Step by step tutorial to install and configure a multiroom audio setup.  Based o
 * Maximise sound quality: No conversion of the audio signal in any way (resampling, lossy codecs, ...)
 * Maximise digital sovereignty: No need to integrate streaming services that make it almost impossible to downlad a text version of **my own** playlists (hi spotify). If you really need it: Use the app on your mobile or desktop and connect via bluetooth.
 
+### Bricks
+
+System Engineering is like playing LEGO: You take some components (lego bricks) with well defined inputs and outputs (studs and their counterparts) and stick them together to build e.g. a house.
+
+This tutorial shows how to create some basic audio bricks and proposes my way of sticking them together to build a multiroom audio system. Your mileage may vary, you may take my bricks as is and stick them together in a different way. But you can change one or the other brick or even create new bricks to build the system that matches your needs.
+
+#### Existing bricks
+
+* DAC: digital analog converter, part of a physical sound card:   
+ * Input: **ALSA sink**: a sequence of samples fed (*played*) into the soundcard with ALSA. 
+ * Output: **analog**: the analog signal on the output connectors of your soundcard.
+* ADC: analog digital converter, part of a physical sound card: 
+ * Input: **analog**: an analog signal e.g. music fed via an audio cable to the input connectors of the soundcard
+ * Output: **ALSA source** a sequence of samples that can be read (*recorded*) from the soundcard using ALSA.
+* MPD: can read audio from multiple sources, can play to different sinks. We use it here only in the following way
+ * Input: **http audio stream** 
+ * Input: **Music Files in different formats**
+ * Output: named pipe
+* snapserver: An audio server that ensures that all (networked) clients play their audio synchronously
+ * Input: named pipe
+ * Output: **snapcast source**
+* snapclient: An audio client connecting to a snapserver
+ * Input: **snapcast sink**
+ * Output: **ALSA source**
+ 
+XXXXX
+
+
+#### New bricks
+
 ### Limitations (learned the hard way)
 
 * Every (?) soundcard has one global clock for the sampling rate (maybe for the sample size too). This seems to be well known, but ist not well documented: You cannot record at 48000/16/2 from the soundcard while playing something else at 44100/16/2. I spent some hours with unclear error messages, erratic behaviour (sometimes a command worked, sometimes not) until I discovered this basic limitation. 
 
 * Do **not** install mpd/snapserver on a VM. You will have dropouts. If anyone knows how to set priorities (on the KVM host and/or in the VM itself) so that the dropouts stop, I would be very happy to learn it. So install them on dedicated HW (like the Raspberry Pi).
+
 
 ## Overview
 
