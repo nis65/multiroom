@@ -23,30 +23,30 @@ The following bricks will be used to build the multiroom audio solution. Every b
 ![](bricks.png)
 
 * **ADC**: analog digital converter, part of a physical sound card: 
- * Input: *analog*: an analog signal e.g. music fed via an audio cable to the input connectors of the soundcard
- * Output: *ALSA source* a sequence of samples that can be read (*recorded*) from the soundcard using ALSA.
+  * Input: *analog*: an analog signal e.g. music fed via an audio cable to the input connectors of the soundcard
+  * Output: *ALSA source* a sequence of samples that can be read (*recorded*) from the soundcard using ALSA.
 * **bluealsa**: receives (together with bluetooth hardware and bluetoothd) an A2DP audio stream and presents it on a virtual ALSA soundcard
- * Input: *bluetooth A2DP audio stream*
- * Output: *ALSA source* (as above)
+  * Input: *bluetooth A2DP audio stream*
+  * Output: *ALSA source* (as above)
 * iceS or **ffmpeg**: while iceS is dedicated to act as an icecast source, ffmpeg could do much more, but we don't care here.
- * Input: *ALSA source* reads (or *records*) an audio sample stream
- * Output: The sample stream is wrapped into an *icecast HTTP-Stream* to be fed to an icecast server.
+  * Input: *ALSA source* reads (or *records*) an audio sample stream
+  * Output: The sample stream is wrapped into an *icecast HTTP-Stream* to be fed to an icecast server.
 * **icecast server**
- * Input: can read from *multiple iceS*, each creating its own output stream.
- * Output: each *http audio stream* can be consumed by one or more clients. However, even if multiple clients consume the same stream, they will not output it synchronously.
+  * Input: can read from *multiple iceS*, each creating its own output stream.
+  * Output: each *http audio stream* can be consumed by one or more clients. However, even if multiple clients consume the same stream, they will not output it synchronously.
 * **MPD**: can play one audio source at a time, but can easily switch (using one of the many mpd clients available) from one source to another:
- * Input: *http audio stream* 
- * Input: *Audio Files in different formats*
- * Output: *named pipe*
+  * Input: *http audio stream* 
+  * Input: *Audio Files in different formats*
+  * Output: *named pipe*
 * **snapserver**: An audio server that ensures that all (networked) clients play their audio synchronously
- * Input: *named pipe*
- * Output: *snapcast stream*
+  * Input: *named pipe*
+  * Output: *snapcast stream*
 * **snapclient**: An audio client connecting to a snapserver
- * Input: *snapcast stream*
- * Output: *ALSA sink*
+  * Input: *snapcast stream*
+  * Output: *ALSA sink*
 * **DAC**: digital analog converter, part of a physical sound card:   
- * Input: *ALSA sink*: reads a sequence of samples fed (*played*) into the soundcard with ALSA. 
- * Output: *analog*: the analog signal on the output connectors of your soundcard.
+  * Input: *ALSA sink*: reads a sequence of samples fed (*played*) into the soundcard with ALSA. 
+  * Output: *analog*: the analog signal on the output connectors of your soundcard.
 
 ### Limitations (learned the hard way)
 
