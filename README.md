@@ -12,35 +12,41 @@ Step by step tutorial to install and configure a multiroom audio setup.  Based o
 * Maximise sound quality: No conversion of the audio signal in any way (resampling, lossy codecs, ...)
 * Maximise digital sovereignty: No need to integrate streaming services that make it almost impossible to downlad a text version of **my own** playlists (hi spotify). If you really need it: Use the app on your mobile or desktop and connect via bluetooth.
 
-### Bricks
+### Components
 
-System Engineering is like playing LEGO: You take some components (lego bricks) with well defined inputs and outputs (studs and their counterparts) and stick them together to build e.g. a house.
+System Engineering is like playing LEGO: You take some components (lego bricks) with well defined inputs and outputs (studs and their counterparts) and stick them together to build something new, for example a house.
 
 This tutorial shows how to create some basic audio bricks and proposes my way of sticking them together to build a multiroom audio system. Your mileage may vary, you may take my bricks as is and stick them together in a different way. But you can change one or the other brick or even create new bricks to build the system that matches your needs.
 
-#### Existing bricks
+The following bricks will be used to build the multiroom audio solution. Every brick has at least one audio input and at least one audio output. While I try not to convert the digital audio format itself, it will be wrapped into different container formats that. The most important feature to categorize the interfaces is whether they can be used over the network or locally on one machine only.
 
-* DAC: digital analog converter, part of a physical sound card:   
- * Input: **ALSA sink**: a sequence of samples fed (*played*) into the soundcard with ALSA. 
- * Output: **analog**: the analog signal on the output connectors of your soundcard.
-* ADC: analog digital converter, part of a physical sound card: 
- * Input: **analog**: an analog signal e.g. music fed via an audio cable to the input connectors of the soundcard
- * Output: **ALSA source** a sequence of samples that can be read (*recorded*) from the soundcard using ALSA.
-* MPD: can read audio from multiple sources, can play to different sinks. We use it here only in the following way
- * Input: **http audio stream** 
- * Input: **Music Files in different formats**
- * Output: named pipe
-* snapserver: An audio server that ensures that all (networked) clients play their audio synchronously
- * Input: named pipe
- * Output: **snapcast source**
-* snapclient: An audio client connecting to a snapserver
- * Input: **snapcast sink**
- * Output: **ALSA source**
- 
-XXXXX
+![](bricks.png)
 
-
-#### New bricks
+* **ADC**: analog digital converter, part of a physical sound card: 
+ * Input: *analog*: an analog signal e.g. music fed via an audio cable to the input connectors of the soundcard
+ * Output: *ALSA source* a sequence of samples that can be read (*recorded*) from the soundcard using ALSA.
+* **bluealsa**: receives (together with bluetooth hardware and bluetoothd) an A2DP audio stream and presents it on a virtual ALSA soundcard
+ * Input: *bluetooth A2DP audio stream*
+ * Output: *ALSA source* (as above)
+* iceS or **ffmpeg**: while iceS is dedicated to act as an icecast source, ffmpeg could do much more, but we don't care here.
+ * Input: *ALSA source* reads (or *records*) an audio sample stream
+ * Output: The sample stream is wrapped into an *icecast HTTP-Stream* to be fed to an icecast server.
+* **icecast server**
+ * Input: can read from *multiple iceS*, each creating its own output stream.
+ * Output: each *http audio stream* can be consumed by one or more clients. However, even if multiple clients consume the same stream, they will not output it synchronously.
+* **MPD**: can play one audio source at a time, but can easily switch (using one of the many mpd clients available) from one source to another:
+ * Input: *http audio stream* 
+ * Input: *Audio Files in different formats*
+ * Output: *named pipe*
+* **snapserver**: An audio server that ensures that all (networked) clients play their audio synchronously
+ * Input: *named pipe*
+ * Output: *snapcast stream*
+* **snapclient**: An audio client connecting to a snapserver
+ * Input: *snapcast stream*
+ * Output: *ALSA sink*
+* **DAC**: digital analog converter, part of a physical sound card:   
+ * Input: *ALSA sink*: reads a sequence of samples fed (*played*) into the soundcard with ALSA. 
+ * Output: *analog*: the analog signal on the output connectors of your soundcard.
 
 ### Limitations (learned the hard way)
 
@@ -60,7 +66,7 @@ XXXXX
   * 3W: [MiniAmp](https://www.hifiberry.com/shop/boards/miniamp). Louder than you expect!
 * Hifi-amplifier with a separate **Rec** selector: In order to stream an analog source (connected to your amp) synchronously to all rooms (including the room with the analog source), you need to be able to send the music e.g. from your turntable to the "REC OUT" connectors while having e.g. the tuner on your loudspeakers.
 
-### Software components
+### Software components (to be moved)
 
 * **alsa**: Plain ALSA for audio input/output. No PulseAudio, no Jack.
 * **mpd**: The core of the solution is plain old mpd. All mpd clients continue to work, all music files continue to work.
