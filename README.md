@@ -7,22 +7,24 @@ Step by step tutorial to install and configure a multiroom audio setup.  Based o
 
 * Use standard software and hardware components as far as possible
 * Rely on existing IP-Network (LAN, WLAN, even VPN) and DNS.
-* Have only one pair of loudspeakers per room and make them universally usable (i.e. as bluetooth audio sink).
+* Have only one pair of speakers per room and make them universally usable (i.e. as bluetooth audio sink).
 * Integrate the HiFi-Amp as sound sink **and** sound source, so that I can stream my vinyl records synchronously to all rooms.
 * Maximise sound quality: No conversion of the audio signal in any way (resampling, lossy codecs, ...)
 * Maximise digital sovereignty: No need to integrate streaming services that make it almost impossible to downlad a text version of **my own** playlists (hi spotify). If you really need it: Use the app on your mobile or desktop and connect via bluetooth.
 
 ### Components
 
-System Engineering is like playing LEGO: You take some components (lego bricks) with well defined inputs and outputs (studs and their counterparts) and stick them together to build something new, for example a house.
+System engineering is like playing LEGO: You take some components (lego bricks) with well defined inputs and outputs (studs and their counterparts) and stick them together to build something new, for example a house.
 
-This tutorial shows how to create some basic audio bricks and proposes my way of sticking them together to build a multiroom audio system. Your mileage may vary, you may take my bricks as is and stick them together in a different way. But you can change one or the other brick or even create new bricks to build the system that matches your needs.
+This tutorial shows how to create some basic audio bricks and proposes my way of sticking them together to build a multiroom audio system. Your mileage may vary, you may take my bricks as is and stick them together in a different way.  You can change some bricks or even create new bricks to build the system that matches your needs.
 
-The following bricks will be used to build the multiroom audio solution. Every brick has at least one audio input and at least one audio output. While I try not to convert the digital audio format itself, it will be wrapped into different container formats that. The most important feature to categorize the interfaces is whether they can be used over the network or locally on one machine only.
+The following bricks will be used to build the multiroom audio solution. Every brick has at least one audio input and at least one audio output. While I try not to convert the digital audio format itself, it will be wrapped into different container formats, depending on the needs of the components. The most important feature to categorize the interfaces is whether they can be used over the network or locally on one machine only: If a connection is by network, you can transport the audio signal via TCP/IP. 
+
+These are the bricks I use:
 
 ![](bricks.png)
 
-* **ADC**: analog digital converter, part of a physical sound card: 
+* **ADC**: analog digital converter, part of a physical sound card
   * Input: *analog*: an analog signal e.g. music fed via an audio cable to the input connectors of the soundcard
   * Output: *ALSA source* a sequence of samples that can be read (*recorded*) from the soundcard using ALSA.
 * **bluealsa**: receives (together with bluetooth hardware and bluetoothd) an A2DP audio stream and presents it on a virtual ALSA soundcard
@@ -34,8 +36,8 @@ The following bricks will be used to build the multiroom audio solution. Every b
 * **icecast server**
   * Input: can read from *multiple iceS*, each creating its own output stream.
   * Output: each *http audio stream* can be consumed by one or more clients. However, even if multiple clients consume the same stream, they will not output it synchronously.
-* **MPD**: can play one audio source at a time, but can easily switch (using one of the many mpd clients available) from one source to another:
-  * Input: *http audio stream* 
+* **MPD**: can play one audio source at a time, but can easily switch (using one of the many mpd clients available) from one source to another
+  * Input: different *http audio streams* 
   * Input: *Audio Files in different formats*
   * Output: *named pipe*
 * **snapserver**: An audio server that ensures that all (networked) clients play their audio synchronously
@@ -47,6 +49,14 @@ The following bricks will be used to build the multiroom audio solution. Every b
 * **DAC**: digital analog converter, part of a physical sound card:   
   * Input: *ALSA sink*: reads a sequence of samples fed (*played*) into the soundcard with ALSA. 
   * Output: *analog*: the analog signal on the output connectors of your soundcard.
+  
+Note that there is no JACK or PulseAudio part of the game.
+
+Kudos go to 
+
+* [badaix](https://github.com/badaix/snapcast) for creating snapcast and an [Android App](https://github.com/badaix/snapdroid) that I install on old mobiles to be used as universal remote controls.
+* [Arkq](https://github.com/Arkq/bluez-alsa) for creating bluealsa.
+* [mill1000](https://gist.github.com/mill1000/) for creating [a2dp-agent](https://gist.github.com/mill1000/74c7473ee3b4a5b13f6325e9994ff84c). Unfortunately, this is a just a gist, so I had to "steal" the file to make changes to it - I wanted to add the option to feed bluetooth input to icecast. The comment section is quite interesting, you even find a [python3 version there](https://gist.github.com/mill1000/74c7473ee3b4a5b13f6325e9994ff84c#gistcomment-3345397).
 
 ### Limitations (learned the hard way)
 
@@ -61,20 +71,10 @@ The following bricks will be used to build the multiroom audio solution. Every b
 
 * Raspberry Pi (I use a *Zero W Rev 1.1*, two *3 B+ Rev 1.3* and a *4 B Rev 1.1*)
 * HifiBerry with line level in and out:  [dac+ adc](https://www.hifiberry.com/shop/boards/hifiberry-dac-adc/) 
-* HifiBerry with integrated amp and loudspeaker connectors: 
+* HifiBerry with integrated amp and speaker connectors: 
   * 60W: [AMP2](https://www.hifiberry.com/shop/boards/hifiberry-amp2/) 
   * 3W: [MiniAmp](https://www.hifiberry.com/shop/boards/miniamp). Louder than you expect!
-* Hifi-amplifier with a separate **Rec** selector: In order to stream an analog source (connected to your amp) synchronously to all rooms (including the room with the analog source), you need to be able to send the music e.g. from your turntable to the "REC OUT" connectors while having e.g. the tuner on your loudspeakers.
-
-### Software components (to be moved)
-
-* **alsa**: Plain ALSA for audio input/output. No PulseAudio, no Jack.
-* **mpd**: The core of the solution is plain old mpd. All mpd clients continue to work, all music files continue to work.
-* **snapcast**: Ensures synchronous playback in all rooms. Kudos go to [badaix](https://github.com/badaix/snapcast). I also installed his [Android App](https://github.com/badaix/snapdroid) on old mobile phones that are now universal remote controls.
-* **bluealsa**: A daemon that is able to create a virtual ALSA sound card from an established bluetooth A2DP connection.
-* **a2dp-agent**: A Bluetooth Agent that handles a connection request from an bluetooth A2DP audio source. Original Code is [here](https://gist.github.com/mill1000/74c7473ee3b4a5b13f6325e9994ff84c). I use a patched version as I want to have the option to output the bluetooth audio either to the local ALSA card (supported by original code) **or** to an icecast stream (not supported).
-* **icecast**, **ffmpeg**: Used to distribute audio from analog/bluetooth sources to mpd. 
-* a few glue scripts and adjusted .service files.
+* Hifi-amplifier with a separate **Rec** selector: In order to stream an analog source (connected to your amp) synchronously to all rooms (including the room with the analog source), you need to be able to send the music e.g. from your turntable to the "REC OUT" connectors while having e.g. the tuner on your speakers.
 
 ### Short comparison to other solutions
 
@@ -95,8 +95,8 @@ During my journey, I found out that playing around with audio can be tricky. If 
 
 * Install Raspbian (based on Debian buster). Be sure to set the keyboard mapping correct, as the default password contains a **y**!
 * Disable the internal soundcard and enable the correct soundcard in `/boot/config.txt`
-* Connect the raspi to the network (LAN or WLAN): Static IP, create a DNS entry in your local DNS server. Choose the hostname wisely, you will use it to connect to your raspi with the mpd controller, the snapcast controller and clients, bluetooth clients etc. The name is transparent to the end users. I called my boxes by the room they are in (like bathroom) or after the loudspeakers they play sound to (like infinity). 
-* Connect the audio inputs/outputs and/or the loudspeakers.
+* Connect the raspi to the network (LAN or WLAN): Static IP, create a DNS entry in your local DNS server. Choose the hostname wisely, you will use it to connect to your raspi with the mpd controller, the snapcast controller and clients, bluetooth clients etc. The name is transparent to the end users. I called my boxes by the room they are in (like bathroom) or after the speakers they play sound to (like infinity). 
+* Connect the audio inputs/outputs and/or the speakers.
 * Configure the default audio format for the ALSA `dmix` and `dsnoop` devices in `/etc/asound.conf`. You can decide to use other sampling rates / sample sizes.
 
   **Warning**: In this tutorial, I always work with the same explicit audio format everywhere, so you will have to adjust almost every command line in this tutorial. I have ripped my 1000+ CDs to FLAC, so most of my audio material is 44100/16/2. 
@@ -143,7 +143,7 @@ During my journey, I found out that playing around with audio can be tricky. If 
 
         aplay -D dmix:CARD=sndrpihifiberry,DEV=0 the_girl_tried_to_kill_me.wav
 
-* If you can't hear anything, play with the `alsamixer` settings until you hear something. If this does not help, you have another issue that you need to fix. It does make any sense to go further until this works.
+* If you can't hear anything, play with the `alsamixer` settings until you hear something. If this does not help, you have another issue that you need to fix. It does not make any sense to go further until this works.
 
 ### Test ALSA input (if present and desired)
 
@@ -159,7 +159,7 @@ During my journey, I found out that playing around with audio can be tricky. If 
 
         arecord -f cd -D dsnoop:CARD=sndrpihifiberry,DEV=0 | aplay -D dmix:CARD=sndrpihifiberry,DEV=0
 
-* You should hear now on your loudspeakers what you are feeding to the analog input. This is the moment to optimize all mixer settings (being it ALSA or on your sound setup). In general, all volume controls should be at 100% except the very last one controlling the final sink. This ensures maximum signal/noise ratio.
+* You should hear now on your speakers what you are feeding to the analog input. This is the moment to optimize all mixer settings (being it ALSA or on your sound setup). In general, all volume controls should be at 100% except the very last one controlling the final sink. This ensures maximum signal/noise ratio.
 
 ### Snapcast
 
@@ -190,7 +190,7 @@ The config file `/etc/default/snapclient` is therefore
     START_SNAPCLIENT=true
     SNAPCLIENT_OPTS="--user _snapclient:audio -h snap.iselin.net -s 3 --hostID infinityID"
 
-The hostID is helpful to identify all snapclients properly.
+Without `hostID` snapclient will use the MAC-adress of  is helpful to identify all snapclients properly.
 
 #### Test snap
 
@@ -210,7 +210,7 @@ Now try to feed the same `.wav` file as above to the snapserver input:
     
     sox the_girl_tried_to_kill_me.wav -t raw - > /tmp/snapfifo
 
-You should now hear the song on your loudspeakers as above (with some delay added). 
+You should now hear the song on your speakers as above (with some delay added). 
 
 ### mpd
 
@@ -255,7 +255,7 @@ If you connect again something to the raspi input connector and have verified wi
 
       mpc -h localhost add alsa://dsnoop:CARD=sndrpihifiberry,DEV=0
       
-When you play this "song", `mpd` will put the sound from the alsa input into the snapfifo and you can hear (in all rooms) what is currently fed to the local ALSA source). This shortcut works only on the raspi where mpd is running, to feed analog (or bluetooth) audio from remote raspis, we need to introduce another technology. Read on. 
+When you play this "song", `mpd` will put the sound from the alsa input into the snapfifo and you can hear (in all rooms) what is currently fed to the local ALSA source). This shortcut works only on the raspi where mpd is running, to feed analog (or bluetooth) audio from remote raspis, we use `icecast`. Read on. 
 
 #### Customize mpd: Add music collection
 
@@ -269,7 +269,7 @@ Depending on the size of your collection, the network and NAS speed, this can ta
 
 Icecast has been designed to create an internet radio station. We will use icecast on every raspi that needs to feed at least one input (analog or bluetooth) over the network to the central mpd. Other solutions solve this problem by installing mpd on every raspi (i.e. there is not one "central" mpd). This is a very symmetric and therefore beautiful solution, but I am not sure if this setup would work for bluetooth sources too. 
 
-In order to stream music over icecast, you need an icecast server and one or more so called *ices*. Every *ice* can create an independent stream in the icecast server.
+In order to stream music over icecast, you need an icecast server and one or more so called *iceS* (ICEcast Source). Every *iceS* can create an independent stream in the icecast server.
 
     apt-get install icecast
     
@@ -285,9 +285,9 @@ Check the following setting, we will use it in the next section.
         <port>8000</port>
     </listen-socket>
     
-#### ices: ffmpeg (with local test file) 
+#### iceS: ffmpeg (with local test file) 
 
-There are many programs that can be used as *ice*, I started first with `ices2` which is configured via xml files similar to the icecast server. I discovered  `ffmpeg` later and am working now with this only - it is much simpler for me to see all relevant parameters on the command line than set options dispersed in an xml file. In order to play an audio file to the icecast server, use
+There are many programs that can be used as *iceS*, I started first with `ices2` which is configured via xml files similar to the icecast server. I discovered  `ffmpeg` later and am working now with this only - it is much simpler for me to see all relevant parameters on the command line than set options dispersed in an xml file. In order to play an audio file to the icecast server, use
 
     ffmpeg -re -loglevel warning \
            -i the_girl_tried_to_kill_me.wav  \
@@ -321,7 +321,7 @@ The only thing we need is a process that feeds the analog input to the icecast s
            -ice_description "ALSA to icecast (flac) via ffmpeg" -content_type 'application/ogg' \
            icecast://source:Hiesh0vahHoh@localhost:8000/alsa.ogg
            
-Now feed some audio signal to the input port of the HifiBerry-Board (see above) and use the browser on your workstation to listen to stream (provided that you still have some loudspeakers connected):
+Now feed some audio signal to the input port of the HifiBerry-Board (see above) and use the browser on your workstation to listen to stream (provided that you still have some speakers connected):
 
     http://infinity:8000/alsa.ogg
     
@@ -331,17 +331,17 @@ Even better, you can feed it as "song" on the playlist to `mpd`:
     
 This adds some delay, but should basically sound identical to the solution above where we enqueued the "song" that points directly to the ALSA `dsnoop` device. However, when using `dsnoop`, the analog audio source must be on the same physical box as `mpd`. With icecast, you can read the analog input on one device and feed it over the network to `mpd` running on a different device.
 
-Now you are ready  to stream your vinyl records to all rooms!
+Now you are ready to stream your vinyl records to all rooms!
 
 ### Bluetooth input (to alsa or icecast)
 
 Ready for the boss fight? So let's go:
 
-The goal is to convert the raspi into something that looks like a bluetooth audio sink (i.e. bluetooth loudspeakers). However, there are some limitations that make the implementation much trickier than the *analog input* above:
+The goal is to convert the raspi into something that looks like a bluetooth audio sink (i.e. bluetooth speakers). However, there are some limitations that make the implementation much trickier than the *analog input* above:
 
 * You cannot attach a program to a non-existing alsa device and just wait until it exists. If you try it, the program will exit immediately with `arecord: main:828: audio open error: No such file or directory`
 * A bluetooth device is identified by its (hopefully unique) bluetooth MAC address. 
-* While bluetoothd can handle everything to actually move data from/to bluetooth, you need a so called bluetooth agent to perform the necessary steps to automatically "pair" a bluetooth device.
+* While bluetoothd can move data from/to bluetooth, you still need a so called **bluetooth agent** to perform the necessary steps to automatically "pair" a bluetooth device.
 * There are many different usages of bluetooth, for audio we use the bluetooth A2DP profile.
 * The bluetooth standard requires the device manufacturers to implement A2DP with a 48000 sampling rate, the support of 44100 is optional. I decided to force 44100 and hope that all my bluetooth clients will be compatible. No issues so far.
 
@@ -387,9 +387,9 @@ You will see a warning that there are no controls. That's ok, they will appear l
 
 In order to connect your mobile to the raspi over bluetooth, you need `bluetoothctl`:
 
-On your mobile, start playing any audio (I discovered that when you don't play any music, the bluetooth-connection dies. Unclear whether this is a (power saving ) feature of the mobile or a bug somewhere. Don't panic, this is only an issue when you manually try to pair the device.).
+On your mobile, start playing any audio (I discovered that when you don't play any music, the bluetooth-connection dies after a few seconds. Unclear whether this is a (power saving ?) feature of the mobile or a bug somewhere. Don't panic, this is only an issue when you manually try to pair the device.).
 
-On your mobile, search for bluetooth devices, you should see `ìnfinity` (or whatever hostname you chose). The raspi should appear like any bluetooth loudspeaker (sometimes as a headset).
+On your mobile, search for bluetooth devices, you should see `ìnfinity` (or whatever hostname you chose). The raspi should appear like any bluetooth speaker (sometimes as a headset).
 
 On the raspi, start `bluetoothctl` (a bluetooth agent)
 
@@ -418,9 +418,9 @@ Now that your mobile (audio source) is connected to the RaspberryPi (A2DP audio 
     MAC="20:39:56:AF:C1:8B" 
     arecord -f cd -D bluealsa:SRV=org.bluealsa,DEV=$MAC,PROFILE=a2dp --dump-hw-params | aplay -f cd -D dmix:CARD=sndrpihifiberry,DEV=0 --dump-hw-params    
 
-If `arecord` complains about `no such device`, the pairing did not work or is already terminated for some reason. Or `bluealsa` is stopped. Otherwise, you can now hear the sound from the loudspeakers connected to the raspi. So this basically converts your raspi into a bluetooth audio converter.
+If `arecord` complains about `no such device`, the pairing did not work or has terminated immediately after pairing for some reason. Or `bluealsa` is stopped. Otherwise, you can now hear the sound from the speakers connected to the raspi. So this basically converts your raspi into a bluetooth audio converter.
 
-**Note**: As we are outputting to the `dmix` and not the `hw` device, it's possible to still have e.ge. the snapclient playing audio and **at the same time** the pipeline above plays the bluetooth sound.
+**Note**: As we are outputting to the `dmix` and not the `hw` device, it's possible to still have e.g. the snapclient playing audio and **at the same time** the pipeline above plays the bluetooth sound.
 
 #### Manual creation of icecast stream
 
@@ -436,7 +436,7 @@ Now that your mobile (audio source) is connected to the RaspberryPi (A2DP audio 
             -ice_description "Bluealsa to icecast (flac) via ffmpeg" -content_type 'application/ogg' \
             icecast://source:Hiesh0vahHoh@localhost:8000/blue.ogg
             
-As before, fire up your browser, go to `http://infinity:8000/blue.ogg`  and you should hear the mobile's sound on the loudspeakers of your desktop. If not, check that the bluetooth volume of your mobile is at 100% (again).
+As before, fire up your browser, go to `http://infinity:8000/blue.ogg`  and you should hear the mobile's sound on the speakers of your desktop. If not, check that the bluetooth volume of your mobile is at 100% (again).
 
 #### Automate all this 
 
@@ -445,18 +445,17 @@ Now we have all low level building blocks together and need to glue them togethe
 * **Analog input to icecast**
   *  `/etc/systemd/system/ffmpeg.service`
   *  `/usr/local/bin/alsa-to-icecast`: a simple loop around the `ffmpeg` command described above
-* **Bluetoooth input to alsa or to icecast
-  Sometimes you want to use the raspi just as a local bluetooth loudspeaker (no multiroom, but lower latency). Typical use case would be watching a video. Sometimes you really want to stream bluetooth to all rooms (at the price of higher latency). Currently, I have implemented both and use a config file to define what should happen after a bluetooth connection. It would be nice if there to have a hardware button and an LED on the raspi that would allow you to select the "bluetooth output mode". 
+* **Bluetoooth input to alsa or to icecast**: Sometimes you want to use the raspi just as a local bluetooth speaker (no multiroom, but low latency). Typical use case would be watching a video. Sometimes you really want to stream bluetooth to all rooms (at the price of higher latency). Currently, I have implemented both and use a config file to define what should happen after a bluetooth connection. It would be nice to have a hardware button and an LED on the raspi that would allow you to select the "bluetooth output mode". 
   * `/usr/local/bin/a2dp-agent`: Patched Version that starts a shell script upon connection
   * `/usr/local/bin/a2dp-to-ice`: Shell script called from `a2dp-agent` to fire up the needed process pipelines to send the A2DP audio to alsa or bluetooth
   
-## Plumbing: from ALSA source to ALSA sink
+## Recap: from ALSA source to ALSA sink
 
-The tutorial above introduced multiple building blocks for audio processing. The picture below shows various configurations how to transport audio from an ALSA source (on top) to an ALSA sink (at the bottom). Most of them were built in the tutorial above. The simplest configuration with the lowest latency is on the right, the full picture (but still without bluetooth) on the left. 
+The tutorial above introduced multiple audio bricks. The picture below shows various configurations how to transport audio from an ALSA source (on top) to an ALSA sink (at the botsearch tom). Most of them were built in the tutorial above. The simplest configuration with the lowest latency is on the right, the full picture (but still without bluetooth) on the left. 
 
 The horizontal lines at the top and the bottom mark the boundary between the ALSA driver (outside) and the audio processing userspace programs (inside). Audio data flows from top ("source") to bottom ("sink").
 
-Every additional handover of the audio stream from a process to the next adds some latency (i.e. the time it takes from an audio signal entering the system until it gets output by the loudspeakers). A latency of 0 is not possible, every audio process first reads a few samples (a *block*) at once, and starts to output only after the output *block* is complete. 
+Every additional handover of the audio stream from a process to the next adds some latency (i.e. the time it takes from an audio signal entering the system until it gets output by the speakers). A latency of 0 is not possible, every audio process first reads a few samples (a *block*) at once, and starts to output only after the output *block* is complete. 
 
 The *block* size is sometimes called `buffer`(but can have various names), the size is sometimes defined on client, sometimes no server side. Read the man pages to find out the configuration option name. 
 
@@ -470,7 +469,7 @@ The vertical size is **not** in relation to the latency added. The processes are
 
 ![](ALSArec2ALSAplay.png)
 
-## Outside ALSA: Soundcard and bluetooth
+## Recap: Outside ALSA (soundcard and bluetooth)
 
 The following diagram shows what is happening **before** entering ALSA and after exiting ALSA.
 
@@ -489,7 +488,7 @@ In case you didn't know yet: **ADC** means **a**nalog **d**igital **c**onversion
   
 ## Wishlist
 
-* It is possible to bypass `mpd` in certain use cases while still maintaining multiroom capabilities: The audio should be played directly to the snapserver fifo. As the fifo should (can ?) only be written to by one process, you would need to stop `mpd` before e.g. starting `arecord ... > /tmp/snapfifo` and start it again when needed. This will need one or more additional glue scripts to switch mode **and** a way to call them remotely (ssh/web/...). As long as `mpd` is running, you can choose from many different remote `mpd` control clients - for many plattforms. 
+* It is possible to bypass `mpd` in certain use cases while still maintaining multiroom capabilities: The audio should be played directly to the snapserver fifo. As the fifo can only be written to by one process, you would need to stop `mpd` before e.g. starting `arecord ... > /tmp/snapfifo` and start it again when needed. This will need one or more additional glue scripts to switch mode **and** a way to call them remotely (ssh/web/...). Alternatively, a simple mixer process (reading two audio inputs and writing the sum of them) would remove the need to switch...
 
 * Better audio quality on analog input: Tests comparing "loopback" with Cinch-Cable to "loopback" via arecord/aplay showed that higher sampling rates on input actually make an audible difference. Even for my old ears. However, this conflicts with the requirement that we need to have the same sampling rate on input and output and want to limit audio conversions to a minimum. 
 
