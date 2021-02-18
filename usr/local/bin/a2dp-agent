@@ -3,6 +3,7 @@
 from __future__ import absolute_import, print_function, unicode_literals
 
 import sys
+import subprocess
 import dbus
 import dbus.service
 import dbus.mainloop.glib
@@ -13,12 +14,19 @@ except ImportError:
 
 AGENT_INTERFACE = "org.bluez.Agent1"
 AGENT_PATH = "/test/agent"
+
+HANDLER_SCRIPT = '/usr/local/bin/a2dp-to-ice'
   
 class Rejected(dbus.DBusException):
 	_dbus_error_name = "org.bluez.Error.Rejected"
 
+
 class Agent(dbus.service.Object):
 	exit_on_release = True
+        
+        def __init__(self, *args, **kwargs):
+            super(Agent,self).__init__(*args, **kwargs)
+            self.handler = None
 
 	def set_exit_on_release(self, exit_on_release):
 		self.exit_on_release = exit_on_release
@@ -36,6 +44,16 @@ class Agent(dbus.service.Object):
 		print("AuthorizeService (%s, %s)" % (device, uuid))
                 if uuid == "0000110d-0000-1000-8000-00805f9b34fb":
                     print("Authorized A2DP Service")
+                    if self.handler:
+                        print("Killing old handler process: %s" % self.handler.pid)
+                        self.handler.kill()
+                    print("Starting handler script: %s")
+                    self.handler = subprocess.Popen(
+                        [HANDLER_SCRIPT, device],
+                        stdout=sys.stdout,
+                        stderr=sys.stderr,
+                        stdin=None
+                    )
                     return
                 print("Rejecting non-A2DP Service")
 		raise Rejected("Connection rejected")
