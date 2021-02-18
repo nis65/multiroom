@@ -22,7 +22,7 @@ The following bricks will be used to build the multiroom audio solution. Every b
 
 These are the bricks I use:
 
-![](bricks.png)
+![](bricks.svn)
 
 * **ADC**: analog digital converter, part of a physical sound card
   * Input: *analog*: an analog signal e.g. music fed via an audio cable to the input connectors of the soundcard
@@ -467,7 +467,7 @@ When a process has more than one output, multiple outputs can be driven at once.
 
 The vertical size is **not** in relation to the latency added. The processes are aligned horizontally so that the same interface is at the same level.
 
-![](ALSArec2ALSAplay.png)
+![](ALSArec2ALSAplay.svn)
 
 ## Recap: Outside ALSA (soundcard and bluetooth)
 
@@ -477,7 +477,7 @@ The bluetooth connection is shown only for the input side (i.e. the raspi is a b
 
 In case you didn't know yet: **ADC** means **a**nalog **d**igital **c**onversion (i.e. converting an analog input into a digitized sample stream) and **DAC** for the opposite (converting a digital input stream into an analog output).
 
-![](outsideALSA.png)
+![](outsideALSA.svn)
 
     
 ## ToDo 
