@@ -1,0 +1,99 @@
+#!/bin/bash
+
+LOGGER="/usr/bin/logger -t $0"
+
+DEFAULTSINK=icecast
+CONFIG=/var/local/lib/a2dp-to-ice.conf
+
+if [[ -r $CONFIG ]]
+then
+  . $CONFIG
+fi
+
+case "$SINK" in 
+  icecast|alsa  ) ;;
+  *       ) SINK=$DEFAULTSINK
+esac
+
+
+BLUEZPATH=$1
+MAC=$( echo ${BLUEZPATH##*dev_} | tr "_" ":" )
+
+$LOGGER "======================== $BLUEZPATH = $MAC"
+
+while ! bluetoothctl devices | grep $MAC > /dev/null 2>&1 
+do
+  $LOGGER "Waiting for $MAC"
+  sleep 1
+done
+
+# $LOGGER exiting for MPD test:  bluealsa:SRV=org.bluealsa,DEV=$MAC,PROFILE=a2dp
+# exit 1
+# works, but disconnection seems strange (exit 0?) 
+
+runfor=10
+while [[ $runfor -gt 0 ]]
+do
+  yesorno=$( bluetoothctl info $MAC | grep Connected | awk ' { print $2 } ' )
+  if [[ "$yesorno" == "yes" ]]
+  then
+    runfor=0
+    $LOGGER "Found $MAC connected, starting streaming to $SINK"
+    # retry 5 seconds (usually bluealsa not ready, but bluealsa returs error also when bluetooth connection dies)
+    tryuntil=$( date --date now+5sec +%s ) 
+    $LOGGER "Trying until $( date --date @$tryuntil ) "
+    now=$( date +%s ) 
+    while [[ $now -lt $tryuntil ]]
+    do
+
+      if [[ "$SINK" == icecast ]]
+      then
+        $LOGGER "starting loop sound from bluetooth to ffmpeg/icecast"
+        # arecord -f cd -D bluealsa:SRV=org.bluealsa,DEV=$MAC,PROFILE=a2dp --dump-hw-params | ices2 /etc/ices-stdinpcm.xml
+        arecord -f cd -D bluealsa:SRV=org.bluealsa,DEV=$MAC,PROFILE=a2dp --dump-hw-params | ffmpeg -nostats -loglevel warning \
+            -f s16le \
+            -ar 44100 -ac 2 \
+            -i - \
+            -f ogg -c:a flac \
+            -ice_name "Infinity Blue FLAC" -ice_url http://infinity.iselin.net:8000/blueflac.ogg \
+            -ice_description "Bluealsa to icecast (flac) via ffmpeg" -content_type 'application/ogg' \
+            icecast://source:ooWoo8nieng3@localhost:8000/blueflac.ogg
+        PIPESTATS="${PIPESTATUS[0]} + ${PIPESTATUS[1]}"
+      else
+        $LOGGER NOT stopping snapclient
+        #systemctl stop snapclient
+        $LOGGER starting loop sound from bluetooth to local dmix
+        arecord -f cd -D bluealsa:SRV=org.bluealsa,DEV=$MAC,PROFILE=a2dp --dump-hw-params | aplay -f cd -D dmix:CARD=sndrpihifiberry,DEV=0 --dump-hw-params
+        PIPESTATS="${PIPESTATUS[0]} + ${PIPESTATUS[1]}"
+      fi
+
+      PIPESTATSUM=$(( $PIPESTATS ))
+      # use "echo" to remove whitespace around awk result
+      PIPE2STAT=$( echo $( echo $PIPESTATS | awk -F + ' { print $2 } ' ) ) 
+      $LOGGER "PIPESTATS $PIPESTATS PIPE2STAT $PIPE2STAT PIPESTATSUM $PIPESTATSUM"
+      if [[ ( $PIPE2STAT -eq 1 ) ||  ( $SINK == "icecast" ) ]]
+      then
+        now=$( date +%s )
+        if [[ $now -lt $tryuntil ]]
+        then
+          $LOGGER "alsa playback error ($PIPE2STAT) or icecast sink ($SINK), retrying in 0.5 from now: $( date --date @${now} )"
+          sleep 0.5
+        else
+          $LOGGER "alsa playback error ($PIPE2STAT) or icecast sink ($SINK), but not sleeping any more"
+        fi
+      else
+        tryuntil=0
+        $LOGGER "playback successful and alsa sink ($SINK), assuming bluetooth closed by client, not retrying"
+      fi
+    done
+    $LOGGER "Not trying any more"
+  else
+    $LOGGER "Retrying $runfor loops for $MAC to be connected"
+    runfor=$(( runfor - 1 ))
+    sleep 1
+  fi
+done
+$LOGGER done
+exit 0
+
+
