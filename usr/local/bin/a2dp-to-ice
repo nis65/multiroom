@@ -57,7 +57,7 @@ do
             -f ogg -c:a flac \
             -ice_name "Infinity Blue FLAC" -ice_url http://infinity.iselin.net:8000/blueflac.ogg \
             -ice_description "Bluealsa to icecast (flac) via ffmpeg" -content_type 'application/ogg' \
-            icecast://source:ooWoo8nieng3@localhost:8000/blueflac.ogg
+            icecast://source:YOURICECASTPASSWORD@localhost:8000/blueflac.ogg
         PIPESTATS="${PIPESTATUS[0]} + ${PIPESTATUS[1]}"
       else
         $LOGGER NOT stopping snapclient
