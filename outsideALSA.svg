@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
+<svg width="32cm" height="40cm" viewBox="599 -336 621 797" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs/>
+  <g id="Hintergrund">
+    <g>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke-dasharray: 4; stroke: #000000" x1="1020" y1="-180" x2="1095.53" y2="-180"/>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="1087.76,-175 1097.76,-180 1087.76,-185 "/>
+    </g>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="1020" y="-155.569">
+      <tspan x="1020" y="-155.569">non network transfer (various) </tspan>
+    </text>
+    <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x1="60" y1="20" x2="60" y2="20"/>
+    <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x1="600" y1="120" x2="1000" y2="120"/>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="1020" y="124.431">
+      <tspan x="1020" y="124.431">ALSA "rec": hw or dsnoop</tspan>
+    </text>
+    <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="780" y="40" width="80" height="60" rx="0" ry="0"/>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="820" y="74.4312">
+      <tspan x="820" y="74.4312">bluealsa</tspan>
+    </text>
+    <g>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke-dasharray: 4; stroke: #000000" x1="820" y1="100" x2="772.154" y2="155.473"/>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="773.438,146.328 770.693,157.167 781.011,152.86 "/>
+    </g>
+    <polygon style="fill: #000000; fill-opacity: 1; stroke-opacity: 1; stroke-width: 1.6; stroke: #000000" fill-rule="evenodd" points="820,-200.992 820,-227.546 811.2,-227.546 820,-260 820,-233.447 828.8,-233.447 "/>
+    <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="780" y="-320" width="80" height="60" rx="0" ry="0"/>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="820" y="-301.569">
+      <tspan x="820" y="-301.569">A2DP</tspan>
+      <tspan x="820" y="-285.569">source</tspan>
+      <tspan x="820" y="-269.569">(mobile)</tspan>
+    </text>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="820" y="-300">
+      <tspan x="820" y="-300"></tspan>
+    </text>
+    <polygon style="fill: #000000; fill-opacity: 1; stroke-opacity: 1; stroke-width: 1.6; stroke: #000000" fill-rule="evenodd" points="1020,-300 1047,-300 1047,-308.8 1080,-300 1053,-300 1053,-291.2 "/>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="1020" y="-275.569">
+      <tspan x="1020" y="-275.569">bluetooth connection</tspan>
+    </text>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="1020" y="-280">
+      <tspan x="1020" y="-280"></tspan>
+    </text>
+    <g>
+      <path style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 3; stroke: #000000" fill-rule="evenodd" d="M 672.862 168.029 C 653.23,167.662 615.156,175.361 620.511,191.86 C 625.865,208.359 651.445,212.025 662.154,207.259 C 672.862,202.493 645.496,230.358 697.848,237.69 C 750.199,245.023 776.969,233.291 769.236,224.858 C 761.502,216.425 815.043,244.657 840.029,228.524 C 865.015,212.392 814.448,196.993 825.156,199.193 C 835.865,201.393 868.584,198.46 857.876,170.962 C 847.168,143.463 750.794,164.729 761.502,160.696 C 772.21,156.663 745.439,136.497 712.125,140.53 C 678.811,144.563 676.448,151.882 672.879,168.014 L 672.862,168.029z"/>
+      <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="748.664" y="196.555">
+        <tspan x="748.664" y="196.555"></tspan>
+      </text>
+    </g>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="742.06" y="178.795">
+      <tspan x="742.06" y="178.795">audio processing</tspan>
+      <tspan x="742.06" y="194.795">in user space </tspan>
+      <tspan x="742.06" y="210.795">as above</tspan>
+    </text>
+    <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="620" y="-320" width="80" height="60" rx="0" ry="0"/>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="660" y="-301.569">
+      <tspan x="660" y="-301.569">analog</tspan>
+      <tspan x="660" y="-285.569">source</tspan>
+      <tspan x="660" y="-269.569">(rec out)</tspan>
+    </text>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="660" y="-290">
+      <tspan x="660" y="-290"></tspan>
+    </text>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="660" y="-290">
+      <tspan x="660" y="-290"></tspan>
+    </text>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="660" y="-280">
+      <tspan x="660" y="-280"></tspan>
+    </text>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="500" y="-320">
+      <tspan x="500" y="-320"></tspan>
+    </text>
+    <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="780" y="-80" width="80" height="60" rx="0" ry="0"/>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="820" y="-45.5688">
+      <tspan x="820" y="-45.5688">bluetoothd</tspan>
+    </text>
+    <g>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke-dasharray: 4; stroke: #000000" x1="820" y1="-18.9966" x2="820" y2="34.5244"/>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="815,26.7605 820,36.7605 825,26.7605 "/>
+    </g>
+    <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="780" y="-200" width="80" height="60" rx="0" ry="0"/>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="820" y="-173.569">
+      <tspan x="820" y="-173.569">bluetooth</tspan>
+      <tspan x="820" y="-157.569">Hardware</tspan>
+    </text>
+    <g>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke-dasharray: 4; stroke: #000000" x1="820" y1="-138.997" x2="820" y2="-85.4756"/>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="815,-93.2395 820,-83.2395 825,-93.2395 "/>
+    </g>
+    <g>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 6; stroke: #000000" x1="660" y1="-260" x2="660" y2="-213.416"/>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 6; stroke: #000000" points="655,-216.708 660,-206.708 665,-216.708 "/>
+    </g>
+    <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="620" y="-200" width="80" height="300" rx="0" ry="0"/>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="660" y="-53.5688">
+      <tspan x="660" y="-53.5688">soundcard</tspan>
+      <tspan x="660" y="-37.5688">(ADC)</tspan>
+    </text>
+    <g>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke-dasharray: 4; stroke: #000000" x1="660" y1="100" x2="694.638" y2="138.143"/>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="685.717,135.756 696.141,139.798 693.12,129.034 "/>
+    </g>
+    <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="900" y="-80" width="80" height="60" rx="0" ry="0"/>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="940" y="-61.5688">
+      <tspan x="940" y="-61.5688">a2dp-agent</tspan>
+      <tspan x="940" y="-45.5688">or</tspan>
+      <tspan x="940" y="-29.5688">bluetoothctl</tspan>
+    </text>
+    <g>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke-dasharray: 4; stroke: #000000" x1="865.371" y1="-50" x2="894.629" y2="-50"/>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="873.135,-55 863.135,-50 873.135,-45 "/>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="886.865,-45 896.865,-50 886.865,-55 "/>
+    </g>
+    <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x1="80" y1="300" x2="80" y2="300"/>
+    <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x1="600" y1="260" x2="1000" y2="260"/>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="1020" y="264.431">
+      <tspan x="1020" y="264.431">ALSA "play": hw or dmix</tspan>
+    </text>
+    <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="700" y="280" width="80" height="60" rx="0" ry="0"/>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="740" y="306.431">
+      <tspan x="740" y="306.431">soundcard</tspan>
+      <tspan x="740" y="322.431">(DAC)</tspan>
+    </text>
+    <g>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke-dasharray: 4; stroke: #000000" x1="741.19" y1="240.93" x2="740.611" y2="274.539"/>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="735.745,266.69 740.572,276.774 745.744,266.862 "/>
+    </g>
+    <g>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 6; stroke: #000000" x1="740" y1="340" x2="740" y2="385.591"/>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 6; stroke: #000000" points="735,382.299 740,392.299 745,382.299 "/>
+    </g>
+    <rect style="fill: #ffffff; fill-opacity: 1; stroke-opacity: 1; stroke-width: 2; stroke: #000000" x="700" y="400" width="80" height="60" rx="0" ry="0"/>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="740" y="418.431">
+      <tspan x="740" y="418.431">analog</tspan>
+      <tspan x="740" y="434.431">sink</tspan>
+      <tspan x="740" y="450.431">(amp)</tspan>
+    </text>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="740" y="430">
+      <tspan x="740" y="430"></tspan>
+    </text>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="740" y="430">
+      <tspan x="740" y="430"></tspan>
+    </text>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="740" y="440">
+      <tspan x="740" y="440"></tspan>
+    </text>
+    <g>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 6; stroke: #000000" x1="1020" y1="-240" x2="1066.58" y2="-240"/>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 6; stroke: #000000" points="1063.29,-235 1073.29,-240 1063.29,-245 "/>
+    </g>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="1020" y="-215.569">
+      <tspan x="1020" y="-215.569">audio cables (stereo)</tspan>
+    </text>
+    <g>
+      <line style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke-dasharray: 4; stroke: #000000" x1="1024.47" y1="-120" x2="1095.53" y2="-120"/>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="1032.24,-125 1022.24,-120 1032.24,-115 "/>
+      <polyline style="fill: none; stroke-opacity: 1; stroke-width: 2; stroke: #000000" points="1087.76,-115 1097.76,-120 1087.76,-125 "/>
+    </g>
+    <text font-size="12.8" style="fill: #000000; fill-opacity: 1; stroke: none;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="1020" y="-95.5688">
+      <tspan x="1020" y="-95.5688">control connection (no audio)</tspan>
+    </text>
+  </g>
+</svg>
