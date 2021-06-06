@@ -53,12 +53,13 @@ These are the bricks I use:
 Note that there is no JACK or PulseAudio part of the game.
 
 In addition, I use some clients to control my system:
-* on Android for `mpd`, I use [MPDroid](https://play.google.com/store/apps/details?id=com.namelessdev.mpdroid) 
-* on Android for `snapserver`, I use [Snapcast](https://play.google.com/store/apps/details?id=de.badaix.snapcast)
-* on my Linux-Desktop, I use [argos](https://github.com/p-e-w/argos). Argos makes writing of GNOME Shell extensions an easy task, all you have to do is create some output on `stdout`. I wrote the following `bash` scripts (to be found in the `argos` subdirectory
-  * **`blue`** to connect to known bluetooth A2DP sinks (like my raspis). The initial pairing has to be done by other means than this script, but once you are paired, it will first remove the device from the known list, scan again for it and wait until it is found and then automatically pair and connect. The removal / repairing was not needed when I started my project in 2019, but became necessary later on. I am not sure if this is due to the upgrades of the Raspberries or the Ubuntu desktop, but I could not reliably connect in the past months without this step.
- * **`mpc`** to control mpd (must need to enter your mpd hostname/ip in order to use this script)
- * **`snap`** to control the snapserver (i.e. the individual volume controls). This is quite an ugly hack and more proof of concept than a really usable Shell extension
+
+* I use [MPDroid](https://play.google.com/store/apps/details?id=com.namelessdev.mpdroid) to control `mpd` from my Android phone. 
+* I use [Snapcast](https://play.google.com/store/apps/details?id=de.badaix.snapcast) to control the volume in alle rooms from my Android phone.
+* on my Linux-Desktop, I use [argos](https://github.com/p-e-w/argos). Argos makes writing of GNOME Shell extensions an easy task, all you have to do is create some output on `stdout` which creates menu entries and actions. I wrote the following `bash` scripts (to be found in the `argos` subdirectory), they are far from being perfect, but good enough for the moment.
+  * **`blue`** to connect to known bluetooth A2DP sinks (like my raspis). The initial pairing has to be done by other means than this script, but once you are paired, it will first remove the device from the known list, scan again for it and wait until it is found and then automatically pair and connect. Two remarks: 1) The removal / repairing was not needed when I started my project in 2019, but became necessary later on. I am not sure if this is due to the upgrades of the Raspberries or the Ubuntu desktop, but I could not reliably connect in the past months without this step. 2) There is currently no way to abort the connection attempt, I'll probably add this later.
+ * **`mpc`** to control mpd (you need to configure your mpd hostname/ip in order to use this script)
+ * **`snap`** to control the snapserver (i.e. the individual volume controls). This is quite an ugly hack and more a proof of concept than a really usable Shell extension.
 
 Kudos go to 
 
