@@ -1,0 +1,17 @@
+#!/bin/bash
+LOGGER="/usr/bin/logger -t $0"
+
+for MAC in $( bluetoothctl devices | awk ' { print $2 } ' )
+do
+  yesorno=$( bluetoothctl info $MAC | grep Connected | awk ' { print $2 } ' )
+  if [[ "$yesorno" == "yes" ]]
+  then 
+    echo DEVICE $MAC connected, do nothing | $LOGGER
+  else
+    bluetoothctl remove $MAC 2>&1 | $LOGGER
+  fi
+done
+
+
+
+

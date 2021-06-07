@@ -87,6 +87,7 @@ do
       fi
     done
     $LOGGER "Not trying any more"
+    bluetoothctl remove $MAC 2>&1 | $LOGGER
   else
     $LOGGER "Retrying $runfor loops for $MAC to be connected"
     runfor=$(( runfor - 1 ))
