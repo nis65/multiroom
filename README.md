@@ -271,7 +271,7 @@ Icecast has been designed to create an internet radio station. We will use iceca
 
 In order to stream music over icecast, you need an icecast server and one or more so called *iceS* (ICEcast Source). Every *iceS* can create an independent stream in the icecast server.
 
-    apt-get install icecast
+    apt-get install icecast2
     
 The config file is `/etc/icecast2/icecast.xml`. The *ices* need to authenticate against the icecast server with the user `source`, so you need to adjust its password (please choose your own with `pwgen 12 1`:
 
@@ -288,6 +288,8 @@ Check the following setting, we will use it in the next section.
 #### iceS: ffmpeg (with local test file) 
 
 There are many programs that can be used as *iceS*, I started first with `ices2` which is configured via xml files similar to the icecast server. I discovered  `ffmpeg` later and am working now with this only - it is much simpler for me to see all relevant parameters on the command line than set options dispersed in an xml file. In order to play an audio file to the icecast server, use
+
+    apt-get install ffmpeg
 
     ffmpeg -re -loglevel warning \
            -i the_girl_tried_to_kill_me.wav  \
@@ -350,6 +352,15 @@ The goal is to convert the raspi into something that looks like a bluetooth audi
 Warning: this is **not safe**, but it's very handy: We will configure bluetoothd to make the device discoverable forever so that you can pair whenever you want. As we don't want to do any authentication, it is possible that a neighbour of you connects to your bluetooth device and you suddenly hear his music, his phone call, whatever. Now that you've read and understood the warning, we change `/etc/bluetooth/main.conf` as follows:
 
     DiscoverableTimeout = 0
+
+First you need to manually enable that the device is discoverable
+
+    # bluetoothctl
+    # discoverable on
+
+This creates `/var/lib/bluetooth/BLUETOOTH-MAC/settings` and then restart bluetoothd
+
+    systemctl restart bluetooth
     
 #### bluealsa
  
@@ -357,12 +368,12 @@ Warning: this is **not safe**, but it's very handy: We will configure bluetoothd
     
 As we want to use bluealsa for audio input only and force the sample rate to 44100, we change the `bluealsa.service` file as follows:
   
-    dpkg-divert --divert /lib/systemd/system/bluealsa.service-DIVERTED --local --rename --add /lib/systemd/system/bluealsa.service
-    cd /lib/systemd/system
-    cp -p bluealsa.service-DIVERTED bluealsa.service
+    systemctl edit bluealsa
     
-Change the ExecStart line
+And put the following into created the override file
 
+    [Service]
+    ExecStart=
     ExecStart=/usr/bin/bluealsa --profile=a2dp-sink --a2dp-force-audio-cd
     
 And restart bluealsa
@@ -443,11 +454,15 @@ As before, fire up your browser, go to `http://infinity:8000/blue.ogg`  and you 
 Now we have all low level building blocks together and need to glue them together
 
 * **Analog input to icecast**
+  Install the following files from this repo
   *  `/etc/systemd/system/ffmpeg.service`
   *  `/usr/local/bin/alsa-to-icecast`: a simple loop around the `ffmpeg` command described above
 * **Bluetoooth input to alsa or to icecast**: Sometimes you want to use the raspi just as a local bluetooth speaker (no multiroom, but low latency). Typical use case would be watching a video. Sometimes you really want to stream bluetooth to all rooms (at the price of higher latency). Currently, I have implemented both and use a config file to define what should happen after a bluetooth connection. It would be nice to have a hardware button and an LED on the raspi that would allow you to select the "bluetooth output mode". 
   * `/usr/local/bin/a2dp-agent`: Patched Version that starts a shell script upon connection
+    * `apt-get install python-dbus`
   * `/usr/local/bin/a2dp-to-ice`: Shell script called from `a2dp-agent` to fire up the needed process pipelines to send the A2DP audio to alsa or bluetooth
+  * `/var/local/lib/a2dp-to-ice.conf`: Config file for shell script to switch feeding bluetooth either to local alsa or to icecast.
+
   
 ## Recap: from ALSA source to ALSA sink
 
