@@ -15,7 +15,7 @@ except ImportError:
 AGENT_INTERFACE = "org.bluez.Agent1"
 AGENT_PATH = "/test/agent"
 
-HANDLER_SCRIPT = '/usr/local/bin/a2dp-to-ice'
+HANDLER_SCRIPT = '/usr/local/bin/a2dp-to-sink'
   
 class Rejected(dbus.DBusException):
 	_dbus_error_name = "org.bluez.Error.Rejected"

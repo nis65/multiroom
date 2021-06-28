@@ -468,9 +468,11 @@ Now we have all low level building blocks together and need to glue them togethe
   *  `/usr/local/bin/alsa-to-icecast`: a simple loop around the `ffmpeg` command described above
 * **Bluetoooth input to alsa or to icecast**: Sometimes you want to use the raspi just as a local bluetooth speaker (no multiroom, but low latency). Typical use case would be watching a video. Sometimes you really want to stream bluetooth to all rooms (at the price of higher latency). Currently, I have implemented both and use a config file to define what should happen after a bluetooth connection. It would be nice to have a hardware button and an LED on the raspi that would allow you to select the "bluetooth output mode". 
   * `/usr/local/bin/a2dp-agent`: Patched Version that starts a shell script upon connection
-    * `apt-get install python-dbus`
-  * `/usr/local/bin/a2dp-to-ice`: Shell script called from `a2dp-agent` to fire up the needed process pipelines to send the A2DP audio to alsa or bluetooth
-  * `/var/local/lib/a2dp-to-ice.conf`: Config file for shell script to switch feeding bluetooth either to local alsa or to icecast.
+  * `apt-get install python-dbus`
+  * `/usr/local/bin/a2dp-to-sink`: Shell script called from `a2dp-agent` to fire up the needed process pipelines to send the A2DP audio to alsa or icecast.
+  * `/etc/a2dp-to-sink.conf`: Config file for shell script to switch feeding bluetooth either to local alsa or to icecast.
+  * `/etc/systemd/system/a2dp-agent.service`: systemd service file to have a2dp-agent running.
+  * Finally, you enable all this with `systemctl daemon-reload`; `systemctl enable a2dp-agent`; `systemctl start a2dp-agent`
 
   
 ## Recap: from ALSA source to ALSA sink
@@ -503,12 +505,6 @@ In case you didn't know yet: **ADC** means **a**nalog **d**igital **c**onversion
 
 ![](outsideALSA.svg)
 
-    
-## ToDo 
-
-* rename some of the scripts as the name does not properly reflect their respective functions any more
-* properly fork a2dp-agent
-* properly put all glue scripts here in github
   
 ## Wishlist
 
@@ -516,8 +512,8 @@ In case you didn't know yet: **ADC** means **a**nalog **d**igital **c**onversion
 
 * Better audio quality on analog input: Tests comparing "loopback" with Cinch-Cable to "loopback" via arecord/aplay showed that higher sampling rates on input actually make an audible difference. Even for my old ears. However, this conflicts with the requirement that we need to have the same sampling rate on input and output and want to limit audio conversions to a minimum. 
 
-* Easy switch bluetooth input config between local alsa out (lower latency, but no multiroom, suitable e.g. for watching TV) and icecast out (high latency, but multiroom, suitable for listening to music only). Currently this is in a config file that is read whenever a new A2DP client is paired (and can be changed on the raspi using a text editor).
+* Easy switch bluetooth input config between local alsa out (lower latency, but no multiroom, suitable e.g. for watching TV) and icecast out (high latency, but multiroom, suitable for listening to music only). Currently this is in `/etc/a2dp-to-sink.conf` that is read whenever a new A2DP client is paired (and can be changed on the raspi using a text editor).
 
 * Easy enable/disable pairing so that you don't have to fear your neighbour's bluetooth clients any more.
 
-* Technical: The current patch of `a2dp-agent` has a flaw (without functional impact, but definitely *not nice*): After `a2dp-agent` has connected a bluetooth device and has called `a2dp-to-ice`, the latter runs as daughter process of the former - as long as the bluetooth connection is up. After termination of the bluetooth connection, the `arecord` process fails (because the alsa device vanished) and `a2dp-to-ice` terminates. So far so good. But now the patched `a2dp-agent` does not immediately *reap* the terminated subprocess, so you will see in `ps` a zombie `a2dp-to-ice` process. The *reaping* happens when a new bluetooth connection is established only.
+* Technical: The current patch of `a2dp-agent` has a flaw (without functional impact, but definitely *not nice*): After `a2dp-agent` has connected a bluetooth device and has called `a2dp-to-sink`, the latter runs as daughter process of the former - as long as the bluetooth connection is up. After termination of the bluetooth connection, the `arecord` process fails (because the alsa device vanished) and `a2dp-to-sink` terminates. So far so good. But now the patched `a2dp-agent` does not immediately *reap* the terminated subprocess, so you will see in `ps` a zombie `a2dp-to-sink` process. The *reaping* happens when a new bluetooth connection is established only.

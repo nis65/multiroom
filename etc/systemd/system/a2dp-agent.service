@@ -7,7 +7,7 @@ Wants=bluetooth.service
 ExecStart=/usr/bin/python -u /usr/local/bin/a2dp-agent
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=A2DP-Agent
+SyslogIdentifier=a2dp-agent
 
 [Install]
 WantedBy=bluetooth.service

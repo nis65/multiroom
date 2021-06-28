@@ -3,7 +3,7 @@
 LOGGER="/usr/bin/logger -t $0"
 
 DEFAULTSINK=icecast
-CONFIG=/var/local/lib/a2dp-to-ice.conf
+CONFIG=/etc/a2dp-to-sink.conf
 
 if [[ -r $CONFIG ]]
 then
