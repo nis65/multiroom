@@ -1,10 +1,19 @@
 #!/bin/bash
+
+if [[ "$1" == "force" ]]
+then
+  FORCE=1
+else
+  FORCE=0
+fi
+
 LOGGER="/usr/bin/logger -t $0"
 
 for MAC in $( bluetoothctl devices | awk ' { print $2 } ' )
 do
   yesorno=$( bluetoothctl info $MAC | grep Connected | awk ' { print $2 } ' )
-  if [[ "$yesorno" == "yes" ]]
+  $LOGGER "FORCE $FORCE yesorno $yesorno MAC $MAC"
+  if [[ ( "$yesorno" == "yes" ) && ( $FORCE -eq 0 ) ]]
   then 
     echo DEVICE $MAC connected, do nothing | $LOGGER
   else
