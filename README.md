@@ -113,7 +113,7 @@ During my journey, I found out that playing around with audio can be tricky. If 
         defaults.pcm.dmix.rate 44100
         defaults.pcm.dmix.format S16_LE
         defaults.pcm.dsnoop.rate 44100
-        defaults.pcm.dnsoop.format S16_LE
+        defaults.pcm.dsnoop.format S16_LE
 
 ### Test ALSA output
 
