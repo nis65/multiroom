@@ -4,7 +4,7 @@ After=bluetooth.service
 Wants=bluetooth.service
 
 [Service]
-ExecStartPre=/usr/bin/bash /usr/local/bin/unpair_disconnected force
+ExecStartPre=/bin/bash /usr/local/bin/unpair_disconnected force
 ExecStart=/usr/bin/python -u /usr/local/bin/a2dp-agent
 StandardOutput=syslog
 StandardError=syslog

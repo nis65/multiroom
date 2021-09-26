@@ -47,7 +47,7 @@ class Agent(dbus.service.Object):
                     if self.handler:
                         print("Killing old handler process: %s" % self.handler.pid)
                         self.handler.kill()
-                    print("Starting handler script: %s")
+                    print("Starting handler script: %s" % HANDLER_SCRIPT)
                     self.handler = subprocess.Popen(
                         [HANDLER_SCRIPT, device],
                         stdout=sys.stdout,
