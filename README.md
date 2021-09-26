@@ -37,6 +37,8 @@ DNS, your raspberry pi has a reasonable name.
 
 #### Basics
 
+We only use ALSA, e.g. no `pulseaudio` or `JACK`.
+
 The whole audio system uses a single audio format. I decided to 
 go for audio cd format **44100Hz/16bit/stereo**, but your mileage 
 my vary. 
