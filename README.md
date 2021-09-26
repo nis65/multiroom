@@ -113,7 +113,7 @@ local music libraries.
 If you don't need this (either you have an external mixer or you simply prefer to e.g. stop mpd when you switch to bluetooth), all sources 
 get mixed to the second loopback dmix unconditionally.
 
-More details to be found [here](docs/controls/README.md)
+More details to be found [here](doc/controls/README.md)
 
 
 ## Motivation
