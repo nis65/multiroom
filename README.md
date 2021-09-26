@@ -2,8 +2,9 @@
 
 Combine all your existing audio hardware to a multiroom audio system using 
 [raspberry pis](https://en.wikipedia.org/wiki/Raspberry_Pi#Specifications) and 
-[hifiberry HATs](https://www.hifiberry.com). If you miss something, buy only
-what you need.
+[hifiberry HATs](https://www.hifiberry.com). If you miss something, you need to 
+buy it. If you buy only what you really need, you will have very good value
+for money.
 
 ## Architecture
 ### Opaque Box
@@ -31,7 +32,8 @@ a.k.a control what is playing.
 
 You have the needed hardware available and assembled, your raspberry pi boots, you know how to 
 change basic configurations like disabling internal sound and enabling the raspberry pi driver etc. Each 
-raspberry pi is connected to your LAN or WLAN and you can login using `ssh`.
+raspberry pi is connected to your LAN or WLAN and you can login using `ssh`. If you have local 
+DNS, your raspberry pi has a reasonable name.
 
 #### Basics
 
