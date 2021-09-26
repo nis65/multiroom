@@ -16,11 +16,12 @@ what you need.
 #### Audio Sources
 * line in
 * bluetooth 
-* digital library (FLAC, ...)
-* internet readio
 
 #### Source switching (and mixing?)
-* yes: with mpd 
+
+a.k.a control what is playing.
+
+* yes: with mpd, supports digital library (FLAC) and internet radio stations and ...
 * no: mix all sources unconditionally to output
 * future: support mixing 
 
@@ -28,7 +29,7 @@ what you need.
 
 #### Precondition
 
-You have the needed hardware available and assembled, you know how to make a raspberry pi bootable, how to 
+You have the needed hardware available and assembled, your raspberry pi boots, you know how to 
 change basic configurations like disabling internal sound and enabling the raspberry pi driver etc. Each 
 raspberry pi is connected to your LAN or WLAN and you can login using `ssh`.
 
@@ -42,7 +43,8 @@ Furthermore, there are the following limitations/requirements:
 
 * Audio conversions should be minimized to maximize audio quality.
 * Each sound card has a global clock / audio format, i.e. you cannot capture a stream at some bit rate and playback a (possibly different) 
-  stream at a different bitrate. This seems to be a general HW limitation.
+  stream at a different bitrate at the same time. This seems to be a general HW limitation. This is important because
+  my setup sometimes uses both the source and sink of the same soundcard for completely independent audio streams.
 * Using `aloop` virtual soundcards and `dmix` / `dsnoop` devices, it is easy to mix in / fan out ALSA audio streams, provided they all have the same audio format.
 
 From a architectural point of view, each node of my multiroom audio system has the following basic ALSA infrastructure:
@@ -53,7 +55,7 @@ From a architectural point of view, each node of my multiroom audio system has t
 
 Hint: There are some technical limitation in the ALSA stack: 
 
-* `alsaloop` seems not to work with `dmix`/`dsnoop` devices. So I use a lot of `arecord | aplay` pipelines instead to copy audiodata streams.
+* `alsaloop` seems not to work with `dmix`/`dsnoop` devices. So I use a lot of `arecord | aplay` pipelines instead to copy audio data streams.
 * when using `.wav` as output format, both `aplay` and `arecord` stop after a bit more than 3 hours. This is the `2GB` limit of `.wav` files which applies even when using `stdout`/`stdin` and not a regular file as sink/source... So you need to have `-t raw` on every `arecord`/`aplay` command.
 
 #### Audio Sinks
@@ -63,15 +65,17 @@ better way to look at it: Output handling is much simpler compared to input hand
 you need to hear something anyway to debug all audio bugs you might encounter on your journey.  In addition, the 
 core requirement **multiroom** is about the sink part only.
 
+Hardware sinks: 
+
 * lineout (Stereo Cinch)
   * useful to connect your existing hifi amp or an active loudspeaker (i.e. with builtin amp)
   * do not use the raspberry on board audio if possible
   * my own experience: any [hifiberry HAT](https://www.hifiberry.com) with `DAC` in its name
 * 4-8 ohms loudspeaker (four wires)
-  * my own experience any [hifiberry HAT](https://www.hifiberry.com) with `Amp` in its name
+  * my own experience: any [hifiberry HAT](https://www.hifiberry.com) with `Amp` in its name
 * do **not** use bluetooth for sinks, as the latency of bluetooth is not predictable and this would ruin the multiroom experience
 
-Available sinks: 
+Software sinks: 
 
 * ALSA: dmix of hifiberry DAC/Amp
 * snapcast: snapclient
@@ -82,6 +86,8 @@ More details to be found [here](doc/sinks/README.md)
 
 #### Audio Sources
 
+Hardware Sources: 
+
 * line in (3.5 mm jack stereo)
   * useful to feed REC OUT from your hifi amp (or from your mobile) to the multiroom system
   * my own experience: any [hifiberry HAT](https://www.hifiberry.com) with `ADC` in its name
@@ -90,9 +96,11 @@ More details to be found [here](doc/sinks/README.md)
 * USB soundcard
   * e.g. record player with builtin USB interface
 
+Software sources (like Internet Radio) are more a control issue (see below). 
+
 More details to be found [here](doc/sources/README.md)
 
-#### Source Switching 
+#### Controls (source switching / mixing)
 
 If you want to control what output is played to your rooms, you need an application like `mpd` and configure `mpd` to output it's 
 music stream in 44100Hz/16bit/stereo to the second loopback that feeds snapserver. In addition, mpd can play IP-radio and
