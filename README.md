@@ -250,7 +250,7 @@ If you can hear sound now, you have verified that the communication from **mpd**
 
 #### Customize mpd: Add alsa input config (with DAC+ADC)
 
-As I discovered only very late during my experiments, mpd can actually read from an alsa source directly. We configure the source in the config file:
+As I discovered only very late during my experiments, mpd can actually read from an alsa source directly. We configure the source in the config file `/etc/mpd.conf`:
 
     input { 
             plugin "alsa"
