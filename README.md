@@ -2,7 +2,7 @@
 
 **NOTE**: This is my 2nd attempt (this was my [first attempt](doc/legacy/2021_README.md)) to document properly all manual steps needed to setup a multiroom audio system using
 raspberry pi hardware and open source software only. While the documentation here is still valid, the code is partially outdated as I have switched to
-automatic deployment with ansible and all development happens [there](Daenou/ansible-multiroom-audio) now.
+automatic deployment with ansible and all new development happens [there](https://github.com/Daenou/ansible-multiroom-audio) now.
 
 ## Goal
 
@@ -55,8 +55,8 @@ Furthermore, there are the following limitations/requirements:
 * Each sound card has a global clock / audio format, i.e. you cannot capture a stream at some bit rate and playback a (possibly different)
   stream at a different bitrate at the same time. This seems to be a general HW limitation. This is important because
   my setup sometimes uses both the source and sink of the same soundcard for completely independent audio streams. In addition,
-  this causes the analog output to *crack* when you start to read from the analog input. Therefore, the output must be stopped
-  shortly before you start reading from the input.
+  that said HW limitation causes the analog output to *crack* when you start to read from the analog input while the output is open. 
+  Therefore, the output must be stopped shortly before you start reading from the input.
 * Using `aloop` virtual soundcards and `dmix` / `dsnoop` devices, it is easy to mix in / fan out ALSA audio streams, provided they all have the same audio format.
 
 From an architectural point of view, each server node (there can be more than one) of my multiroom audio system has the following basic ALSA infrastructure:
@@ -70,7 +70,7 @@ Each client node
 * runs a local snapclient writing to `dmix` analog out
 * can put additional audio signals to the local `dmix` analog out, e.g. a bluetooth input (which converts a client into a bluetooth speaker)
 
-Hint: There are some technical limitation in the ALSA stack:
+Hint: There are some technical limitations in the ALSA stack:
 
 * `alsaloop` seems not to work with `dmix`/`dsnoop` devices. So I use a lot of `arecord | aplay` pipelines instead to copy audio data streams.
 * when using `.wav` as output format, both `aplay` and `arecord` stop after a bit more than 3 hours. This is the `2GB` limit of `.wav` files which applies even when using `stdout`/`stdin` and not a regular file as sink/source! So you need to have `-t raw` on every `arecord`/`aplay` command.
