@@ -52,11 +52,12 @@ my vary.
 Furthermore, there are the following limitations/requirements:
 
 * Audio conversions should be minimized to maximize audio quality.
-* Each sound card has a global clock / audio format, i.e. you cannot capture a stream at some bit rate and playback a (possibly different)
-  stream at a different bitrate at the same time. This seems to be a general HW limitation. This is important because
-  my setup sometimes uses both the source and sink of the same soundcard for completely independent audio streams. In addition,
-  that said HW limitation causes the analog output to *crack* when you start to read from the analog input while the output is open. 
-  Therefore, the output must be stopped shortly before you start reading from the input.
+* Each sound card has one global clock (and audio format) at a certain moment in time, i.e. while you actually
+  can capture a stream and playback a different stream at the same time, this is only possible if they have exactly
+  the same bitrate and audio format. This is important because my setup sometimes uses both the source and sink of the
+  same soundcard for completely independent audio streams. In addition, that said HW limitation causes the analog output
+  to *crack* when you start to capture from the analog input while the output is playing.  Therefore, the output must be interrupted shortly
+  before you start reading from the input.
 * Using `aloop` virtual soundcards and `dmix` / `dsnoop` devices, it is easy to mix in / fan out ALSA audio streams, provided they all have the same audio format.
 
 From an architectural point of view, each server node (there can be more than one) of my multiroom audio system has the following basic ALSA infrastructure:
