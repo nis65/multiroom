@@ -133,5 +133,3 @@ but not synchronous. Hurting my ears whenever changing from the kitchen to the l
 In 2018, I started with rasperry pi, hifiberry and snapcast. Boooom! True synchronous audio with
 individual volume in every room. However, the approach was quite bottom up because all interfaces
 were new and I actually had some requirements that forced me to learn even more...
-
-
