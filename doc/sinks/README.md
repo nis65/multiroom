@@ -1,8 +1,0 @@
-
-# Sinks
-
-## ALSA dmix
-
-## snapclient
-
-

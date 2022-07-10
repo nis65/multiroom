@@ -1,8 +1,14 @@
 # multiroom
 
-Combine all your existing audio hardware to a multiroom audio system using 
-[raspberry pis](https://en.wikipedia.org/wiki/Raspberry_Pi#Specifications) and 
-[hifiberry HATs](https://www.hifiberry.com). If you miss something, you need to 
+**NOTE**: This is my 2nd attempt (this was my [first attempt](doc/legacy/2021_README.md)) to document properly all manual steps needed to setup a multiroom audio system using
+raspberry pi hardware and open source software only. While the documentation here is still valid, the code is partially outdated as I have switched to
+automatic deployment with ansible and all development happens [there](Daenou/ansible-multiroom-audio) now.
+
+## Goal
+
+Combine all your existing audio hardware to a multiroom audio system using
+[raspberry pis](https://en.wikipedia.org/wiki/Raspberry_Pi#Specifications) and
+[hifiberry HATs](https://www.hifiberry.com). If you miss something, you need to
 buy it. If you buy only what you really need, you will have very good value
 for money.
 
@@ -11,86 +17,88 @@ for money.
 #### Audio Sinks
 * line out
 * 4-8Ohm loudspeakers, 3W or 60W
-* current multiroom: all sinks synchronous, each sink with individual volume control
-* future multiroom: split in multiple multiroom segments with individual audio sources
+* all sinks synchronous, each sink with individual volume control
+* bluetooth is **not** used as sink because of unpredictable latency.
 
 #### Audio Sources
 * line in
-* bluetooth 
+* bluetooth
+* mpd / spotify / ...
 
 #### Source switching (and mixing?)
 
-a.k.a control what is playing.
+a.k.a control what is playing. Current architecture connects all sources, that are to be distributed via snapcast to an alsa `dmix` loopback device. If multiple sources play at once, they get 'mixed' by alsa. This has two consequences:
 
-* yes: with mpd, supports digital library (FLAC) and internet radio stations and ...
-* no: mix all sources unconditionally to output
-* future: support mixing 
+* It is the users responsibility to play only one source at once and to feed the source with the proper signal (e.g. mpd/spotify playlist, play to bluetooth, put on a vinyl record)
+* All sources must deliver the audio signal in the same format (otherwise `dmix` cannot be used).
 
 ### Transparent Box
 
 #### Precondition
 
-You have the needed hardware available and assembled, your raspberry pi boots, you know how to 
-change basic configurations like disabling internal sound and enabling the raspberry pi driver etc. Each 
-raspberry pi is connected to your LAN or WLAN and you can login using `ssh`. If you have local 
+You have the needed hardware available and assembled, your raspberry pi boots, you know how to
+change basic configurations like disabling internal sound and enabling the raspberry pi driver etc. Each
+raspberry pi is connected to your LAN or WLAN and you can login using `ssh`. If you have local
 DNS, your raspberry pi has a reasonable name.
 
 #### Basics
 
 We only use ALSA, e.g. no `pulseaudio` or `JACK`.
 
-The whole audio system uses a single audio format. I decided to 
-go for audio cd format **44100Hz/16bit/stereo**, but your mileage 
-my vary. 
+The whole audio system uses a single audio format. I decided to
+go for audio cd format **44100Hz/16bit/stereo**, but your mileage
+my vary.
 
 Furthermore, there are the following limitations/requirements:
 
 * Audio conversions should be minimized to maximize audio quality.
-* Each sound card has a global clock / audio format, i.e. you cannot capture a stream at some bit rate and playback a (possibly different) 
+* Each sound card has a global clock / audio format, i.e. you cannot capture a stream at some bit rate and playback a (possibly different)
   stream at a different bitrate at the same time. This seems to be a general HW limitation. This is important because
-  my setup sometimes uses both the source and sink of the same soundcard for completely independent audio streams.
+  my setup sometimes uses both the source and sink of the same soundcard for completely independent audio streams. In addition,
+  this causes the analog output to *crack* when you start to read from the analog input. Therefore, the output must be stopped
+  shortly before you start reading from the input.
 * Using `aloop` virtual soundcards and `dmix` / `dsnoop` devices, it is easy to mix in / fan out ALSA audio streams, provided they all have the same audio format.
 
-From a architectural point of view, each node of my multiroom audio system has the following basic ALSA infrastructure:
+From an architectural point of view, each server node (there can be more than one) of my multiroom audio system has the following basic ALSA infrastructure:
 
-* loopback soundcard loaded (alsa index 1 so that hifiberry stays on 0)
-* first loopback from dmix0 to dsnoop1 used to "mix" all sources 
-* second loopback from dmix 1 to dsnoop2 used to "mix" all sinks to handover to snapserver. Might not be needed any more as newer versions of snapserver seem to have the builtin capability for mixing multiple sources.
+* loopback soundcard loaded (and use always names and not numbers as the latter can change on reboot)
+* first loopback from dmix0 to dsnoop1 used to "mix" all sources
+* `snapserver` to consume the audio signal from dsnoop1 and distribute it
 
-Hint: There are some technical limitation in the ALSA stack: 
+Each client node
+
+* runs a local snapclient writing to `dmix` analog out
+* can put additional audio signals to the local `dmix` analog out, e.g. a bluetooth input (which converts a client into a bluetooth speaker)
+
+Hint: There are some technical limitation in the ALSA stack:
 
 * `alsaloop` seems not to work with `dmix`/`dsnoop` devices. So I use a lot of `arecord | aplay` pipelines instead to copy audio data streams.
-* when using `.wav` as output format, both `aplay` and `arecord` stop after a bit more than 3 hours. This is the `2GB` limit of `.wav` files which applies even when using `stdout`/`stdin` and not a regular file as sink/source... So you need to have `-t raw` on every `arecord`/`aplay` command.
+* when using `.wav` as output format, both `aplay` and `arecord` stop after a bit more than 3 hours. This is the `2GB` limit of `.wav` files which applies even when using `stdout`/`stdin` and not a regular file as sink/source! So you need to have `-t raw` on every `arecord`/`aplay` command.
 
 #### Audio Sinks
 
 It may sound strange to start with the sinks, i.e. putting the cart before the horse. But this is actually the
-better way to look at it: Output handling is much simpler compared to input handling and 
-you need to hear something anyway to debug all audio bugs you might encounter on your journey.  In addition, the 
+better way to look at it: Output handling is much simpler compared to input handling and
+you need to hear something anyway to debug all audio bugs you might encounter on your journey.  In addition, the
 core requirement **multiroom** is about the sink part only.
 
-Hardware sinks: 
+Hardware sinks:
 
 * lineout (Stereo Cinch)
   * useful to connect your existing hifi amp or an active loudspeaker (i.e. with builtin amp)
   * do not use the raspberry on board audio if possible
   * my own experience: any [hifiberry HAT](https://www.hifiberry.com) with `DAC` in its name
-* 4-8 ohms loudspeaker (four wires)
+* a pair 4-8 ohms loudspeaker (2x2 wires)
   * my own experience: any [hifiberry HAT](https://www.hifiberry.com) with `Amp` in its name
-* do **not** use bluetooth for sinks, as the latency of bluetooth is not predictable and this would ruin the multiroom experience
+* do **not** use bluetooth to connect to loudspeakers, as the unpredictable latency of bluetooth would ruin the multiroom experience
 
-Software sinks: 
+Software sinks to drive the hardware directly:
 
-* ALSA: dmix of hifiberry DAC/Amp
-* snapcast: snapclient
-  * current: needs static configuration of snapserver
-  * future: switchable for multiple segments? autofind?
-
-More details to be found [here](doc/sinks/README.md)
+* ALSA: use the `dmix` of hifiberry DAC/Amp
 
 #### Audio Sources
 
-Hardware Sources: 
+Hardware Sources:
 
 * line in (3.5 mm jack stereo)
   * useful to feed REC OUT from your hifi amp (or from your mobile) to the multiroom system
@@ -100,37 +108,29 @@ Hardware Sources:
 * USB soundcard
   * e.g. record player with builtin USB interface
 
-Software sources (like Internet Radio) are more a control issue (see below). 
+Software sources (like Internet Radio) are more a control issue (see below).
 
 More details to be found [here](doc/sources/README.md)
 
 #### Controls (source switching / mixing)
 
-If you want to control what output is played to your rooms, you need an application like `mpd` and configure `mpd` to output it's 
-music stream in 44100Hz/16bit/stereo to the second loopback that feeds snapserver. In addition, mpd can play IP-radio and
-local music libraries. 
-
-If you don't need this (either you have an external mixer or you simply prefer to e.g. stop mpd when you switch to bluetooth), all sources 
-get mixed to the second loopback dmix unconditionally.
+If you want to control what output is played to your rooms, you need an application like `mpd` and configure `mpd` to output it's
+music stream in 44100Hz/16bit/stereo to the alsa loopback that feeds snapserver. In addition, `mpd` can play IP-radio and
+local music libraries.
 
 More details to be found [here](doc/controls/README.md)
-
 
 ## Motivation
 
 I am fascinated by open source. I am addicted to the music I like. The first time I saw multiroom
-audio was as a 14 year old in a flat with speakers in every room. They were all 
+audio was as a 14 year old in a flat with speakers in every room. They were all
 connected via flushmounted (unter Putz) cables to the central hifi amp.
 
 Years later, I started to stream audio over WLAN. But as I was using the MPD http output, I had multiroom,
 but not synchronous. Hurting my ears whenever changing from the kitchen to the living room.
 
-In 2018, I started with rasperry pi, hifiberry and snapcast. Boooom! True synchronous audio with 
+In 2018, I started with rasperry pi, hifiberry and snapcast. Boooom! True synchronous audio with
 individual volume in every room. However, the approach was quite bottom up because all interfaces
 were new and I actually had some requirements that forced me to learn even more...
-
-This is now my 2nd approach to document what I learned, hopefully in a much more structured way
-than the [first attempt](doc/legacy/2021_README.md).
-
 
 
